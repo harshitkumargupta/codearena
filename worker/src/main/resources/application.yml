@@ -18,6 +18,19 @@ spring:
         max-concurrency: ${WORKER_CONCURRENCY:1}
 
 codearena:
+  sandbox:
+    docker-host: ${DOCKER_HOST:unix:///var/run/docker.sock}
+    java-image: ${JUDGE_JAVA_IMAGE:codearena/judge-java:latest}
+    python-image: ${JUDGE_PYTHON_IMAGE:codearena/judge-python:latest}
+    nano-cpus: ${SANDBOX_NANO_CPUS:1000000000}
+    pids-limit: ${SANDBOX_PIDS_LIMIT:64}
+    tmpfs-size-mb: ${SANDBOX_TMPFS_SIZE_MB:16}
+    output-limit-bytes: ${SANDBOX_OUTPUT_LIMIT_BYTES:1048576}
+    kill-grace-ms: ${SANDBOX_KILL_GRACE_MS:1000}
+    compile-time-limit-ms: ${SANDBOX_COMPILE_TIME_LIMIT_MS:10000}
+    compile-memory-mb: ${SANDBOX_COMPILE_MEMORY_MB:512}
+    java-overhead-mb: ${SANDBOX_JAVA_OVERHEAD_MB:64}
+    max-compiled-bytes: ${SANDBOX_MAX_COMPILED_BYTES:8388608}
   queues:
     jobs: ${JUDGE_JOBS_QUEUE:judge.jobs}
     results: ${JUDGE_RESULTS_QUEUE:judge.results}

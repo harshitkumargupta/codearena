@@ -1,0 +1,7 @@
+#!/bin/sh
+"$@" < /input/stdin.txt
+status=$?
+peak=$(cat /sys/fs/cgroup/memory.peak 2>/dev/null)
+cpu=$(sed -n 's/^usage_usec //p' /sys/fs/cgroup/cpu.stat 2>/dev/null)
+printf '\n@@judge-meta %s %s\n' "${peak:--1}" "${cpu:--1}" >&2
+exit "$status"
