@@ -29,11 +29,14 @@ class SubmissionResultServiceTest {
             new SubmissionResultService(repository, eventPublisher, Clock.fixed(NOW, ZoneOffset.UTC));
 
     @Test
-    void runningOnlyMovesPendingSubmission() {
+    void runningOnlyMovesPendingSubmissionAndAnnouncesIt() {
+        when(repository.markRunning(9L)).thenReturn(1);
+
         service.apply(JudgeResult.running(9L));
 
         verify(repository).markRunning(9L);
         verify(repository, never()).finishIfOpen(anyLong(), any(), any(), any(), any(), any(), any());
+        verify(eventPublisher).publishEvent(new SubmissionStatusChangedEvent(9L, Verdict.RUNNING));
     }
 
     @Test
@@ -43,6 +46,7 @@ class SubmissionResultServiceTest {
         service.apply(JudgeResult.running(9L));
 
         verify(repository).markRunning(9L);
+        verifyNoInteractions(eventPublisher);
     }
 
     @ParameterizedTest
@@ -55,7 +59,7 @@ class SubmissionResultServiceTest {
 
         verify(repository).finishIfOpen(9L, verdict, "detail", 2, 120, 4096, NOW);
         verify(repository, never()).markRunning(anyLong());
-        verify(eventPublisher).publishEvent(new SubmissionFinalizedEvent(9L));
+        verify(eventPublisher).publishEvent(new SubmissionStatusChangedEvent(9L, verdict));
     }
 
     @Test
@@ -77,7 +81,12 @@ class SubmissionResultServiceTest {
 
     @Test
     void deadLetteredJobMarksOpenSubmissionAsInternalError() {
+        when(repository.finishIfOpen(9L, Verdict.INTERNAL_ERROR, "Judging failed after 3 attempts", null, null, null,
+                NOW)).thenReturn(1);
+
         service.markJudgingFailed(9L);
+
+        verify(eventPublisher).publishEvent(new SubmissionStatusChangedEvent(9L, Verdict.INTERNAL_ERROR));
 
         verify(repository).finishIfOpen(9L, Verdict.INTERNAL_ERROR, "Judging failed after 3 attempts", null, null,
                 null, NOW);
@@ -85,7 +94,12 @@ class SubmissionResultServiceTest {
 
     @Test
     void sweeperGiveUpMarksOpenSubmissionAsInternalError() {
+        when(repository.finishIfOpen(9L, Verdict.INTERNAL_ERROR, SubmissionResultService.JUDGING_STUCK_DETAIL, null,
+                null, null, NOW)).thenReturn(1);
+
         service.markJudgingStuck(9L);
+
+        verify(eventPublisher).publishEvent(new SubmissionStatusChangedEvent(9L, Verdict.INTERNAL_ERROR));
 
         verify(repository).finishIfOpen(9L, Verdict.INTERNAL_ERROR, SubmissionResultService.JUDGING_STUCK_DETAIL, null,
                 null, null, NOW);

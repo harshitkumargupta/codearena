@@ -38,6 +38,8 @@ public class SubmissionResultService {
             case RUNNING -> {
                 if (submissionRepository.markRunning(id) == 0) {
                     log.debug("Ignoring RUNNING for submission {}: not PENDING", id);
+                } else {
+                    eventPublisher.publishEvent(new SubmissionStatusChangedEvent(id, Verdict.RUNNING));
                 }
             }
             default -> finish(id, result.verdict(), result.detail(), result.failedTestOrdinal(), result.timeMs(),
@@ -63,7 +65,7 @@ public class SubmissionResultService {
             log.info("Ignoring {} for submission {}: already final or missing", verdict, id);
         } else {
             log.info("Submission {} judged {}", id, verdict);
-            eventPublisher.publishEvent(new SubmissionFinalizedEvent(id));
+            eventPublisher.publishEvent(new SubmissionStatusChangedEvent(id, verdict));
         }
     }
 }

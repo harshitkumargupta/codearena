@@ -4,6 +4,7 @@ import com.codearena.api.contest.scoring.ScoredSubmission;
 import com.codearena.common.Verdict;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,6 +20,9 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
     Page<Submission> findByUserId(Long userId, Pageable pageable);
 
     Page<Submission> findByUserIdAndProblemId(Long userId, Long problemId, Pageable pageable);
+
+    @Query("select s.userId from Submission s where s.id = :id")
+    Optional<Long> findOwnerId(@Param("id") long id);
 
     String LOCK_STUCK_SQL = """
             select s.id as "id", s.attempts_count as "attemptsCount"

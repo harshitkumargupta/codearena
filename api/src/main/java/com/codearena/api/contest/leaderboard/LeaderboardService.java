@@ -17,6 +17,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
@@ -94,11 +95,17 @@ public class LeaderboardService {
         rebuild(find(contestId));
     }
 
+    /**
+     * @return the contest whose leaderboard changed, or empty if the submission is not a contest submission
+     */
     @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
-    public void refreshForSubmission(long submissionId) {
-        submissionRepository.findById(submissionId)
+    public Optional<Long> refreshForSubmission(long submissionId) {
+        return submissionRepository.findById(submissionId)
                 .filter(s -> s.getContestId() != null)
-                .ifPresent(s -> updateUser(find(s.getContestId()), s.getUserId()));
+                .map(s -> {
+                    updateUser(find(s.getContestId()), s.getUserId());
+                    return s.getContestId();
+                });
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)

@@ -98,7 +98,7 @@ class LeaderboardRedisTest {
             return StreamSupport.stream(ids.spliterator(), false).map(LeaderboardRedisTest::user).toList();
         });
         service = new LeaderboardService(redis, contestRepository, participantRepository, submissionRepository,
-                userRepository, new LeaderboardProperties(50, 200));
+                userRepository, new LeaderboardProperties(50, 200, Duration.ofSeconds(1)));
 
         submit(1L, 101L, Verdict.ACCEPTED, 10);
         submit(1L, 102L, Verdict.WRONG_ANSWER, 20);
@@ -132,7 +132,7 @@ class LeaderboardRedisTest {
         when(submissionRepository.findById(500L)).thenReturn(Optional.of(carolsAccepted));
         submit(3L, 102L, Verdict.ACCEPTED, 50);
 
-        service.refreshForSubmission(500L);
+        assertThat(service.refreshForSubmission(500L)).contains(CONTEST_ID);
 
         assertThat(service.top(CONTEST_ID, null).entries()).extracting(LeaderboardEntry::username,
                         LeaderboardEntry::rank, LeaderboardEntry::solved, LeaderboardEntry::penaltyMinutes)

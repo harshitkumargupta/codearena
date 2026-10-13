@@ -35,6 +35,7 @@ codearena:
   leaderboard:
     default-limit: ${LEADERBOARD_DEFAULT_LIMIT:50}
     max-limit: ${LEADERBOARD_MAX_LIMIT:200}
+    broadcast-interval: ${LEADERBOARD_BROADCAST_INTERVAL:1s}
   sweeper:
     enabled: ${SWEEPER_ENABLED:true}
     interval: ${SWEEPER_INTERVAL:30s}
