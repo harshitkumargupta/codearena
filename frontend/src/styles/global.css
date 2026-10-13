@@ -1,0 +1,73 @@
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --border: #d9dde3;
+  --text: #1c2430;
+  --muted: #5b6573;
+  --primary: #2457d6;
+  --primary-hover: #1c46ad;
+  --focus: #f0a400;
+  --danger: #b42318;
+  --ok: #157f3b;
+  --ok-bg: #e6f4ea;
+  --wa: #b42318;
+  --wa-bg: #fdecea;
+  --limit: #9a5b00;
+  --limit-bg: #fff4e0;
+  --re: #7a2bb5;
+  --re-bg: #f3eafb;
+  --ce: #34556f;
+  --ce-bg: #e7eef4;
+  --pending: #2457d6;
+  --pending-bg: #e8eefc;
+  --neutral: #4b5563;
+  --neutral-bg: #eef0f3;
+  --easy: #157f3b;
+  --medium: #9a5b00;
+  --hard: #b42318;
+  --radius: 6px;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+a {
+  color: var(--primary);
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+pre,
+code {
+  font-family: var(--mono);
+  font-size: 0.9em;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

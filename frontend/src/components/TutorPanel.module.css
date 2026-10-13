@@ -1,0 +1,27 @@
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.answer {
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  background: var(--pending-bg);
+  overflow-wrap: anywhere;
+}
+
+.answer pre {
+  white-space: pre-wrap;
+}
+
+.fallback {
+  background: var(--neutral-bg);
+}
+
+.heading {
+  margin: 0;
+  font-size: 1rem;
+}

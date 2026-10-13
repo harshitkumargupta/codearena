@@ -1,0 +1,45 @@
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.55rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.PENDING,
+.RUNNING {
+  color: var(--pending);
+  background: var(--pending-bg);
+}
+
+.ACCEPTED {
+  color: var(--ok);
+  background: var(--ok-bg);
+}
+
+.WRONG_ANSWER {
+  color: var(--wa);
+  background: var(--wa-bg);
+}
+
+.TIME_LIMIT_EXCEEDED,
+.MEMORY_LIMIT_EXCEEDED {
+  color: var(--limit);
+  background: var(--limit-bg);
+}
+
+.RUNTIME_ERROR {
+  color: var(--re);
+  background: var(--re-bg);
+}
+
+.COMPILATION_ERROR {
+  color: var(--ce);
+  background: var(--ce-bg);
+}
+
+.INTERNAL_ERROR {
+  color: var(--neutral);
+  background: var(--neutral-bg);
+}
