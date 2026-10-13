@@ -13,7 +13,7 @@ class JwtServiceTest {
 
     private static final String SECRET = "0123456789abcdef0123456789abcdef";
     private static final Instant NOW = Instant.parse("2026-10-13T10:00:00Z");
-    private static final Duration TTL = Duration.ofMinutes(15);
+    private static final Duration TTL = Duration.ofHours(2);
     private static final AuthUser ALICE = new AuthUser(42L, "alice", Role.ADMIN);
 
     private static JwtService serviceAt(Instant instant, String secret) {

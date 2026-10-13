@@ -66,7 +66,7 @@ class AuthControllerTest {
 
     @Test
     void loginIsPublic() throws Exception {
-        when(authService.login(any())).thenReturn(new AuthResponse("token", "Bearer", 900, ALICE));
+        when(authService.login(any())).thenReturn(new AuthResponse("token", "Bearer", 7200, ALICE));
 
         mvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)

@@ -36,7 +36,7 @@ class AuthServiceTest {
     private final UserRepository userRepository = mock(UserRepository.class);
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(4);
     private final JwtService jwtService =
-            new JwtService(new JwtProperties("0123456789abcdef0123456789abcdef", Duration.ofMinutes(15)), clock);
+            new JwtService(new JwtProperties("0123456789abcdef0123456789abcdef", Duration.ofHours(2)), clock);
     private final AuthService authService = new AuthService(userRepository, passwordEncoder, jwtService, clock);
 
     @Test
@@ -52,7 +52,7 @@ class AuthServiceTest {
         assertThat(saved.getValue().getRole()).isEqualTo(Role.USER);
         assertThat(saved.getValue().getEmail()).isEqualTo("alice@example.com");
         assertThat(jwtService.parse(response.accessToken())).contains(new AuthUser(7L, "alice", Role.USER));
-        assertThat(response.expiresInSeconds()).isEqualTo(900);
+        assertThat(response.expiresInSeconds()).isEqualTo(7200);
     }
 
     @Test
