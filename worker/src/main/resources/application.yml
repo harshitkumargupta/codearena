@@ -31,6 +31,8 @@ codearena:
     compile-memory-mb: ${SANDBOX_COMPILE_MEMORY_MB:512}
     java-overhead-mb: ${SANDBOX_JAVA_OVERHEAD_MB:64}
     max-compiled-bytes: ${SANDBOX_MAX_COMPILED_BYTES:8388608}
+  judge:
+    detail-max-chars: ${JUDGE_DETAIL_MAX_CHARS:4000}
   queues:
     jobs: ${JUDGE_JOBS_QUEUE:judge.jobs}
     results: ${JUDGE_RESULTS_QUEUE:judge.results}
@@ -44,3 +46,9 @@ management:
   endpoint:
     health:
       show-details: ${HEALTH_SHOW_DETAILS:never}
+
+logging:
+  level:
+    org.apache.hc.client5.http.wire: OFF
+    org.apache.hc.client5.http.headers: OFF
+    com.github.dockerjava: INFO

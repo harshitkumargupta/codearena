@@ -16,6 +16,7 @@ public class SandboxRunner {
     private static final String PYTHON_SOURCE = "Main.py";
     private static final String STDIN_FILE = "stdin.txt";
     private static final String COMPILE_OUTPUT_DIR = "/out";
+    private static final String PYTHON_PYCACHE_DIR = ContainerExecutor.WORK_DIR + "/pycache";
     private static final String LAUNCHER = "judge-run";
     private static final String JAVA_STACK_SIZE = "-Xss64m";
     private static final String JAVA_OOM_MARKER = "java.lang.OutOfMemoryError";
@@ -39,24 +40,24 @@ public class SandboxRunner {
 
     public CompileResult compile(Language language, String source) {
         byte[] sourceBytes = source.getBytes(StandardCharsets.UTF_8);
-        if (language == Language.PYTHON) {
-            return CompileResult.success(new Program(language, Map.of(PYTHON_SOURCE, sourceBytes)));
-        }
+        boolean java = language == Language.JAVA;
+        String sourceFile = java ? JAVA_SOURCE : PYTHON_SOURCE;
         try {
             ContainerRun run = executor.execute(new ContainerSpec(
-                    properties.javaImage(),
-                    javacCommand(),
+                    java ? properties.javaImage() : properties.pythonImage(),
+                    java ? javacCommand() : pythonCompileCommand(),
                     properties.compileMemoryMb() * BYTES_PER_MB,
                     properties.compileTimeLimitMs(),
-                    Map.of(JAVA_SOURCE, sourceBytes),
-                    COMPILE_OUTPUT_DIR));
+                    Map.of(sourceFile, sourceBytes),
+                    java ? COMPILE_OUTPUT_DIR : null));
             if (run.timedOut() || run.oomKilled() || run.outputLimitExceeded() || run.exitCode() != 0
-                    || run.outputFiles().isEmpty()) {
+                    || (java && run.outputFiles().isEmpty())) {
                 String stderr = run.timedOut() ? "Compilation timed out\n" + run.stderr() : run.stderr();
                 return CompileResult.failed(new SandboxResult(SandboxOutcome.COMPILE_ERROR, run.stdout(), stderr,
                         run.exitCode(), run.wallTimeMs(), null, null, run.outputLimitExceeded()));
             }
-            return CompileResult.success(new Program(language, run.outputFiles()));
+            Map<String, byte[]> files = java ? run.outputFiles() : Map.of(PYTHON_SOURCE, sourceBytes);
+            return CompileResult.success(new Program(language, files));
         } catch (RuntimeException ex) {
             log.error("Sandbox compilation failed for {}", language, ex);
             return CompileResult.failed(SandboxResult.internalError());
@@ -126,6 +127,11 @@ public class SandboxRunner {
                 "-XX:-UsePerfData",
                 "-cp", ContainerExecutor.INPUT_DIR,
                 "Main");
+    }
+
+    private static List<String> pythonCompileCommand() {
+        return List.of("python3", "-X", "pycache_prefix=" + PYTHON_PYCACHE_DIR, "-m", "py_compile",
+                ContainerExecutor.INPUT_DIR + "/" + PYTHON_SOURCE);
     }
 
     private static List<String> pythonRunCommand() {

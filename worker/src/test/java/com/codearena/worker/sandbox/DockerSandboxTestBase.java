@@ -22,7 +22,7 @@ import org.springframework.core.io.ClassPathResource;
  * Runs against the real Docker daemon from {@code DOCKER_HOST} with the worker's real sandbox config.
  * The whole class is skipped with a clear reason when Docker or the judge images are unavailable.
  */
-abstract class DockerSandboxTestBase {
+public abstract class DockerSandboxTestBase {
 
     protected static SandboxProperties properties;
     protected static SandboxRunner runner;
