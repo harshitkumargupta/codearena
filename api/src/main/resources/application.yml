@@ -1,0 +1,42 @@
+server:
+  port: ${API_PORT:8080}
+
+spring:
+  application:
+    name: codearena-api
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5433}/${POSTGRES_DB:codearena}
+    username: ${POSTGRES_USER:codearena}
+    password: ${POSTGRES_PASSWORD:codearena}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:codearena}
+    password: ${RABBITMQ_PASSWORD:codearena}
+
+codearena:
+  queues:
+    jobs: ${JUDGE_JOBS_QUEUE:judge.jobs}
+    results: ${JUDGE_RESULTS_QUEUE:judge.results}
+    dead-letter: ${JUDGE_DLQ:judge.jobs.dlq}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: ${HEALTH_SHOW_DETAILS:never}

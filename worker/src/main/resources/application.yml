@@ -1,0 +1,33 @@
+server:
+  port: ${WORKER_PORT:8081}
+
+spring:
+  application:
+    name: codearena-worker
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:codearena}
+    password: ${RABBITMQ_PASSWORD:codearena}
+    listener:
+      type: simple
+      simple:
+        acknowledge-mode: manual
+        prefetch: ${WORKER_PREFETCH:1}
+        concurrency: ${WORKER_CONCURRENCY:1}
+        max-concurrency: ${WORKER_CONCURRENCY:1}
+
+codearena:
+  queues:
+    jobs: ${JUDGE_JOBS_QUEUE:judge.jobs}
+    results: ${JUDGE_RESULTS_QUEUE:judge.results}
+    dead-letter: ${JUDGE_DLQ:judge.jobs.dlq}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: ${HEALTH_SHOW_DETAILS:never}
