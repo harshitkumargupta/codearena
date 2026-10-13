@@ -97,3 +97,24 @@ export class FakeLiveClient implements LiveClient {
     this.listeners.forEach((l) => l(state));
   }
 }
+
+type Handler = (init: RequestInit | undefined) => Response | Promise<Response>;
+
+/** Routes fetch calls by "METHOD /path" (query string ignored) and records them. */
+export function fetchRouter(routes: Record<string, Handler>) {
+  const calls: { key: string; init: RequestInit | undefined }[] = [];
+  const fn = vi.fn<typeof fetch>((input, init) => {
+    const url = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url, 'http://test');
+    const key = `${init?.method ?? 'GET'} ${url.pathname}`;
+    calls.push({ key, init });
+    const handler = routes[key];
+    return Promise.resolve(handler ? handler(init) : jsonResponse(404, { status: 404, message: `No route for ${key}` }));
+  });
+  return { fn, calls };
+}
+
+export function jsonBody<T = Record<string, unknown>>(init: RequestInit | undefined): T {
+  const body = init?.body;
+  if (typeof body !== 'string') throw new Error('Request had no JSON string body');
+  return JSON.parse(body) as T;
+}

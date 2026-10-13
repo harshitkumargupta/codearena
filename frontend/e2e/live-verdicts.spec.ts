@@ -1,5 +1,6 @@
 import { writeFileSync } from 'node:fs';
 import { expect, test, type Page } from '@playwright/test';
+import { setEditorCode } from './helpers';
 
 const OUT = 'e2e/output';
 
@@ -37,14 +38,6 @@ declare global {
   }
 }
 
-async function setEditorCode(page: Page, code: string) {
-  const editor = page.locator('.monaco-editor').first();
-  await editor.waitFor();
-  await editor.click();
-  await page.keyboard.press('ControlOrMeta+A');
-  await page.keyboard.press('Delete');
-  await page.keyboard.insertText(code);
-}
 
 async function submitAndWait(page: Page, finalStatus: string) {
   await page.evaluate(() => {

@@ -3,7 +3,7 @@ import { ApiError } from '../api/client';
 import { api } from '../api/endpoints';
 import { EXPLAINABLE_VERDICTS, type HintLevel, type TutorResponse } from '../api/types';
 import type { SubmissionView } from '../live/submissionView';
-import { formatCountdown } from './countdown';
+import { formatCountdown } from './retryCountdown';
 import { Markdown } from './Markdown';
 import styles from './TutorPanel.module.css';
 import ui from './ui.module.css';

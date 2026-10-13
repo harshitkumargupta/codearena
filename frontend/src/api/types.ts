@@ -169,3 +169,86 @@ export interface TutorResponse {
   text: string;
   fallback: boolean;
 }
+
+export type ContestStatus = 'UPCOMING' | 'RUNNING' | 'ENDED';
+
+export interface ContestSummary {
+  id: number;
+  title: string;
+  startTime: string;
+  endTime: string;
+  penaltyMinutes: number;
+  status: ContestStatus;
+}
+
+export interface ContestProblemView {
+  label: string;
+  problemId: number;
+  slug: string;
+  title: string;
+  difficulty: Difficulty;
+}
+
+export interface ContestDetail extends ContestSummary {
+  problemsVisible: boolean;
+  problems: ContestProblemView[];
+}
+
+export interface JoinResponse {
+  contestId: number;
+  userId: number;
+  alreadyJoined: boolean;
+}
+
+export interface LeaderboardEntry {
+  rank: number;
+  userId: number;
+  username: string;
+  solved: number;
+  penaltyMinutes: number;
+}
+
+export interface LeaderboardResponse {
+  contestId: number;
+  entries: LeaderboardEntry[];
+}
+
+export interface ProblemRequest {
+  slug: string;
+  title: string;
+  statementMd: string;
+  difficulty: Difficulty;
+  timeLimitMs: number;
+  memoryLimitMb: number;
+  published: boolean;
+}
+
+export interface AdminProblemResponse extends ProblemRequest {
+  id: number;
+  createdAt: string;
+}
+
+export interface TestCaseRequest {
+  input: string;
+  expectedOutput: string;
+  sample: boolean;
+}
+
+export interface TestCaseSummary {
+  id: number;
+  ordinal: number;
+  sample: boolean;
+}
+
+export interface ContestProblemRequest {
+  problemId: number;
+  label: string;
+}
+
+export interface ContestRequest {
+  title: string;
+  startTime: string;
+  endTime: string;
+  penaltyMinutes?: number;
+  problems: ContestProblemRequest[];
+}

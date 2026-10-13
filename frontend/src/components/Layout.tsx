@@ -13,12 +13,17 @@ export function Layout() {
         </Link>
         <nav className={styles.nav} aria-label="Main">
           <NavLink to="/problems">Problems</NavLink>
+          <NavLink to="/contests">Contests</NavLink>
+          {session?.user.role === 'ADMIN' && <NavLink to="/admin">Admin</NavLink>}
         </nav>
         <div className={styles.user}>
           {session ? (
             <>
               <span>
-                Signed in as <strong>{session.user.username}</strong>
+                Signed in as{' '}
+                <Link to="/profile">
+                  <strong>{session.user.username}</strong>
+                </Link>
               </span>
               <button type="button" className={`${ui.button} ${ui.secondary}`} onClick={logout}>
                 Log out
