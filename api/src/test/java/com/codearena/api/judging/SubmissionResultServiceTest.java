@@ -15,6 +15,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationEventPublisher;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
@@ -23,8 +24,9 @@ class SubmissionResultServiceTest {
     private static final Instant NOW = Instant.parse("2026-10-13T10:00:00Z");
 
     private final SubmissionRepository repository = mock(SubmissionRepository.class);
+    private final ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
     private final SubmissionResultService service =
-            new SubmissionResultService(repository, Clock.fixed(NOW, ZoneOffset.UTC));
+            new SubmissionResultService(repository, eventPublisher, Clock.fixed(NOW, ZoneOffset.UTC));
 
     @Test
     void runningOnlyMovesPendingSubmission() {
@@ -53,6 +55,7 @@ class SubmissionResultServiceTest {
 
         verify(repository).finishIfOpen(9L, verdict, "detail", 2, 120, 4096, NOW);
         verify(repository, never()).markRunning(anyLong());
+        verify(eventPublisher).publishEvent(new SubmissionFinalizedEvent(9L));
     }
 
     @Test
@@ -62,6 +65,7 @@ class SubmissionResultServiceTest {
         service.apply(new JudgeResult(9L, Verdict.WRONG_ANSWER, 3, 50, 1000, null));
 
         verify(repository).finishIfOpen(9L, Verdict.WRONG_ANSWER, null, 3, 50, 1000, NOW);
+        verifyNoInteractions(eventPublisher);
     }
 
     @Test
@@ -77,5 +81,13 @@ class SubmissionResultServiceTest {
 
         verify(repository).finishIfOpen(9L, Verdict.INTERNAL_ERROR, "Judging failed after 3 attempts", null, null,
                 null, NOW);
+    }
+
+    @Test
+    void sweeperGiveUpMarksOpenSubmissionAsInternalError() {
+        service.markJudgingStuck(9L);
+
+        verify(repository).finishIfOpen(9L, Verdict.INTERNAL_ERROR, SubmissionResultService.JUDGING_STUCK_DETAIL, null,
+                null, null, NOW);
     }
 }

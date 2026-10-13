@@ -11,10 +11,14 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.codearena.api.submission.SubmissionRepository;
 import com.codearena.common.JudgeJob;
 import com.codearena.common.JudgeQueues;
 import com.codearena.common.Language;
+import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -29,8 +33,11 @@ class JudgeJobPublisherTest {
 
     private final JudgeJobFactory factory = mock(JudgeJobFactory.class);
     private final RabbitTemplate rabbitTemplate = mock(RabbitTemplate.class);
+    private static final Instant NOW = Instant.parse("2026-10-13T10:00:00Z");
+
+    private final SubmissionRepository submissionRepository = mock(SubmissionRepository.class);
     private final JudgeJobPublisher publisher = new JudgeJobPublisher(factory, rabbitTemplate,
-            new MessagingProperties(Duration.ofMillis(200)));
+            new MessagingProperties(Duration.ofMillis(200)), submissionRepository, Clock.fixed(NOW, ZoneOffset.UTC));
 
     @Test
     void publishesFullJobToJobsQueueAndWaitsForConfirm() {
@@ -40,6 +47,7 @@ class JudgeJobPublisherTest {
         assertThat(publisher.publish(10L)).isTrue();
 
         verify(rabbitTemplate).convertAndSend(eq(""), eq(JudgeQueues.JOBS), eq(JOB), any(CorrelationData.class));
+        verify(submissionRepository).markQueued(10L, NOW);
     }
 
     @Test
@@ -48,6 +56,7 @@ class JudgeJobPublisherTest {
         confirmWith(false);
 
         assertThat(publisher.publish(10L)).isFalse();
+        verify(submissionRepository, never()).markQueued(org.mockito.ArgumentMatchers.anyLong(), any());
     }
 
     @Test

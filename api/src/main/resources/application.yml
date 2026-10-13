@@ -32,6 +32,15 @@ spring:
       mandatory: true
 
 codearena:
+  leaderboard:
+    default-limit: ${LEADERBOARD_DEFAULT_LIMIT:50}
+    max-limit: ${LEADERBOARD_MAX_LIMIT:200}
+  sweeper:
+    enabled: ${SWEEPER_ENABLED:true}
+    interval: ${SWEEPER_INTERVAL:30s}
+    stuck-after: ${SWEEPER_STUCK_AFTER:2m}
+    max-requeues: ${SWEEPER_MAX_REQUEUES:3}
+    batch-size: ${SWEEPER_BATCH_SIZE:50}
   messaging:
     confirm-timeout: ${MESSAGING_CONFIRM_TIMEOUT:10s}
   jwt:

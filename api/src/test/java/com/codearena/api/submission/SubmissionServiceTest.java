@@ -8,6 +8,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.codearena.api.contest.ContestSubmissionValidator;
 import com.codearena.api.error.ForbiddenException;
 import com.codearena.api.error.NotFoundException;
 import com.codearena.api.error.ValidationException;
@@ -40,8 +41,9 @@ class SubmissionServiceTest {
     private final SubmissionRepository submissionRepository = mock(SubmissionRepository.class);
     private final ProblemRepository problemRepository = mock(ProblemRepository.class);
     private final ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
+    private final ContestSubmissionValidator contestValidator = mock(ContestSubmissionValidator.class);
     private final SubmissionService service = new SubmissionService(submissionRepository, problemRepository,
-            eventPublisher, Clock.fixed(NOW, ZoneOffset.UTC));
+            contestValidator, eventPublisher, Clock.fixed(NOW, ZoneOffset.UTC));
 
     @Test
     void submitSavesPendingRowForCaller() {
@@ -49,7 +51,7 @@ class SubmissionServiceTest {
         when(submissionRepository.save(any(Submission.class)))
                 .thenAnswer(inv -> withId(inv.getArgument(0), 100L));
 
-        SubmitResponse response = service.submit(OWNER, new SubmitRequest(5L, Language.JAVA, "class Main {}"));
+        SubmitResponse response = service.submit(OWNER, new SubmitRequest(5L, Language.JAVA, "class Main {}", null));
 
         ArgumentCaptor<Submission> saved = ArgumentCaptor.forClass(Submission.class);
         verify(submissionRepository).save(saved.capture());
@@ -58,13 +60,41 @@ class SubmissionServiceTest {
         assertThat(saved.getValue().getStatus()).isEqualTo(Verdict.PENDING);
         assertThat(saved.getValue().getCreatedAt()).isEqualTo(NOW);
         verify(eventPublisher).publishEvent(new SubmissionCreatedEvent(100L));
+        verify(contestValidator, never()).validate(any(), org.mockito.ArgumentMatchers.anyLong(),
+                org.mockito.ArgumentMatchers.anyLong());
+    }
+
+    @Test
+    void contestSubmissionIsValidatedAndStoresContestId() {
+        when(problemRepository.findById(5L)).thenReturn(Optional.of(problem(5L, true)));
+        when(submissionRepository.save(any(Submission.class)))
+                .thenAnswer(inv -> withId(inv.getArgument(0), 101L));
+
+        service.submit(OWNER, new SubmitRequest(5L, Language.JAVA, "class Main {}", 9L));
+
+        ArgumentCaptor<Submission> saved = ArgumentCaptor.forClass(Submission.class);
+        verify(contestValidator).validate(OWNER, 9L, 5L);
+        verify(submissionRepository).save(saved.capture());
+        assertThat(saved.getValue().getContestId()).isEqualTo(9L);
+    }
+
+    @Test
+    void rejectedContestSubmissionIsNotSaved() {
+        when(problemRepository.findById(5L)).thenReturn(Optional.of(problem(5L, true)));
+        org.mockito.Mockito.doThrow(new ForbiddenException("You have not joined this contest"))
+                .when(contestValidator).validate(OWNER, 9L, 5L);
+
+        assertThatThrownBy(() -> service.submit(OWNER, new SubmitRequest(5L, Language.JAVA, "x", 9L)))
+                .isInstanceOf(ForbiddenException.class);
+        verify(submissionRepository, never()).save(any());
+        verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test
     void submitToUnknownProblemIsRejected() {
         when(problemRepository.findById(5L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.submit(OWNER, new SubmitRequest(5L, Language.JAVA, "x")))
+        assertThatThrownBy(() -> service.submit(OWNER, new SubmitRequest(5L, Language.JAVA, "x", null)))
                 .isInstanceOf(ValidationException.class);
         verify(submissionRepository, never()).save(any());
         verify(eventPublisher, never()).publishEvent(any());
@@ -74,7 +104,7 @@ class SubmissionServiceTest {
     void submitToUnpublishedProblemIsRejected() {
         when(problemRepository.findById(5L)).thenReturn(Optional.of(problem(5L, false)));
 
-        assertThatThrownBy(() -> service.submit(OWNER, new SubmitRequest(5L, Language.PYTHON, "x")))
+        assertThatThrownBy(() -> service.submit(OWNER, new SubmitRequest(5L, Language.PYTHON, "x", null)))
                 .isInstanceOf(ValidationException.class);
         verify(submissionRepository, never()).save(any());
     }
@@ -108,7 +138,7 @@ class SubmissionServiceTest {
     }
 
     private static Submission storedSubmission() {
-        return withId(new Submission(OWNER.id(), 5L, Language.PYTHON, "print(1)", NOW), 100L);
+        return withId(new Submission(OWNER.id(), 5L, null, Language.PYTHON, "print(1)", NOW), 100L);
     }
 
     private static Problem problem(long id, boolean published) {

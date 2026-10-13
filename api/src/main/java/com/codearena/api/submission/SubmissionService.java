@@ -1,5 +1,6 @@
 package com.codearena.api.submission;
 
+import com.codearena.api.contest.ContestSubmissionValidator;
 import com.codearena.api.error.ForbiddenException;
 import com.codearena.api.error.NotFoundException;
 import com.codearena.api.error.ValidationException;
@@ -26,13 +27,16 @@ public class SubmissionService {
 
     private final SubmissionRepository submissionRepository;
     private final ProblemRepository problemRepository;
+    private final ContestSubmissionValidator contestValidator;
     private final ApplicationEventPublisher eventPublisher;
     private final Clock clock;
 
     public SubmissionService(SubmissionRepository submissionRepository, ProblemRepository problemRepository,
-                             ApplicationEventPublisher eventPublisher, Clock clock) {
+                             ContestSubmissionValidator contestValidator, ApplicationEventPublisher eventPublisher,
+                             Clock clock) {
         this.submissionRepository = submissionRepository;
         this.problemRepository = problemRepository;
+        this.contestValidator = contestValidator;
         this.eventPublisher = eventPublisher;
         this.clock = clock;
     }
@@ -42,8 +46,11 @@ public class SubmissionService {
         Problem problem = problemRepository.findById(request.problemId())
                 .filter(Problem::isPublished)
                 .orElseThrow(() -> new ValidationException("problemId", "problem does not exist"));
+        if (request.contestId() != null) {
+            contestValidator.validate(user, request.contestId(), problem.getId());
+        }
         Submission submission = submissionRepository.save(new Submission(user.id(), problem.getId(),
-                request.language(), request.sourceCode(), clock.instant()));
+                request.contestId(), request.language(), request.sourceCode(), clock.instant()));
         eventPublisher.publishEvent(new SubmissionCreatedEvent(submission.getId()));
         return new SubmitResponse(submission.getId(), submission.getStatus());
     }

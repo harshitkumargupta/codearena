@@ -61,12 +61,17 @@ public class Submission {
     @Column(name = "judged_at")
     private Instant judgedAt;
 
+    @Column(name = "last_queued_at")
+    private Instant lastQueuedAt;
+
     protected Submission() {
     }
 
-    public Submission(Long userId, Long problemId, Language language, String sourceCode, Instant createdAt) {
+    public Submission(Long userId, Long problemId, Long contestId, Language language, String sourceCode,
+                      Instant createdAt) {
         this.userId = userId;
         this.problemId = problemId;
+        this.contestId = contestId;
         this.language = language;
         this.sourceCode = sourceCode;
         this.status = Verdict.PENDING;
@@ -127,5 +132,9 @@ public class Submission {
 
     public Instant getJudgedAt() {
         return judgedAt;
+    }
+
+    public Instant getLastQueuedAt() {
+        return lastQueuedAt;
     }
 }

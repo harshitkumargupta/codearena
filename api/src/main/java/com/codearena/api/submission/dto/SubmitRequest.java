@@ -9,7 +9,8 @@ import jakarta.validation.constraints.Positive;
 public record SubmitRequest(
         @NotNull @Positive Long problemId,
         @NotNull Language language,
-        @NotBlank @MaxUtf8Bytes(SubmitRequest.MAX_SOURCE_BYTES) String sourceCode
+        @NotBlank @MaxUtf8Bytes(SubmitRequest.MAX_SOURCE_BYTES) String sourceCode,
+        @Positive Long contestId
 ) {
 
     public static final int MAX_SOURCE_BYTES = 64 * 1024;

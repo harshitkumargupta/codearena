@@ -1,7 +1,9 @@
 package com.codearena.api.judging;
 
+import com.codearena.api.submission.SubmissionRepository;
 import com.codearena.common.JudgeJob;
 import com.codearena.common.JudgeQueues;
+import java.time.Clock;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
@@ -22,12 +24,16 @@ public class JudgeJobPublisher {
     private final JudgeJobFactory jobFactory;
     private final RabbitTemplate rabbitTemplate;
     private final MessagingProperties properties;
+    private final SubmissionRepository submissionRepository;
+    private final Clock clock;
 
-    public JudgeJobPublisher(JudgeJobFactory jobFactory, RabbitTemplate rabbitTemplate,
-                             MessagingProperties properties) {
+    public JudgeJobPublisher(JudgeJobFactory jobFactory, RabbitTemplate rabbitTemplate, MessagingProperties properties,
+                             SubmissionRepository submissionRepository, Clock clock) {
         this.jobFactory = jobFactory;
         this.rabbitTemplate = rabbitTemplate;
         this.properties = properties;
+        this.submissionRepository = submissionRepository;
+        this.clock = clock;
     }
 
     @Async
@@ -51,6 +57,7 @@ public class JudgeJobPublisher {
                 log.warn("Broker did not accept judge job for submission {}; it stays PENDING", submissionId);
                 return false;
             }
+            submissionRepository.markQueued(submissionId, clock.instant());
             log.info("Published judge job for submission {} ({} test cases)", submissionId,
                     job.get().testCases().size());
             return true;

@@ -31,7 +31,7 @@ class JudgeJobFactoryTest {
 
     @Test
     void buildsJobWithAllTestCasesAndProblemLimits() {
-        Submission submission = withId(new Submission(1L, 5L, Language.JAVA, "class Main {}", NOW), 10L);
+        Submission submission = withId(new Submission(1L, 5L, null, Language.JAVA, "class Main {}", NOW), 10L);
         Problem problem = new Problem(null, NOW);
         problem.update("two-sum", "Two Sum", "s", Difficulty.EASY, 2000, 256, true);
         withId(problem, 5L);
