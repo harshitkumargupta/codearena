@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import com.codearena.api.error.ForbiddenException;
 import com.codearena.api.error.NotFoundException;
 import com.codearena.api.error.ValidationException;
+import com.codearena.api.judging.SubmissionCreatedEvent;
 import com.codearena.api.problem.Difficulty;
 import com.codearena.api.problem.Problem;
 import com.codearena.api.problem.ProblemRepository;
@@ -26,6 +27,7 @@ import java.time.ZoneOffset;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
 class SubmissionServiceTest {
@@ -37,8 +39,9 @@ class SubmissionServiceTest {
 
     private final SubmissionRepository submissionRepository = mock(SubmissionRepository.class);
     private final ProblemRepository problemRepository = mock(ProblemRepository.class);
+    private final ApplicationEventPublisher eventPublisher = mock(ApplicationEventPublisher.class);
     private final SubmissionService service = new SubmissionService(submissionRepository, problemRepository,
-            Clock.fixed(NOW, ZoneOffset.UTC));
+            eventPublisher, Clock.fixed(NOW, ZoneOffset.UTC));
 
     @Test
     void submitSavesPendingRowForCaller() {
@@ -54,6 +57,7 @@ class SubmissionServiceTest {
         assertThat(saved.getValue().getUserId()).isEqualTo(1L);
         assertThat(saved.getValue().getStatus()).isEqualTo(Verdict.PENDING);
         assertThat(saved.getValue().getCreatedAt()).isEqualTo(NOW);
+        verify(eventPublisher).publishEvent(new SubmissionCreatedEvent(100L));
     }
 
     @Test
@@ -63,6 +67,7 @@ class SubmissionServiceTest {
         assertThatThrownBy(() -> service.submit(OWNER, new SubmitRequest(5L, Language.JAVA, "x")))
                 .isInstanceOf(ValidationException.class);
         verify(submissionRepository, never()).save(any());
+        verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test

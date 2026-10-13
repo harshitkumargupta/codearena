@@ -3,6 +3,7 @@ package com.codearena.api.submission;
 import com.codearena.api.error.ForbiddenException;
 import com.codearena.api.error.NotFoundException;
 import com.codearena.api.error.ValidationException;
+import com.codearena.api.judging.SubmissionCreatedEvent;
 import com.codearena.api.problem.Problem;
 import com.codearena.api.problem.ProblemRepository;
 import com.codearena.api.security.AuthUser;
@@ -13,6 +14,7 @@ import com.codearena.api.submission.dto.SubmitResponse;
 import com.codearena.api.web.PageRequests;
 import com.codearena.api.web.PageResponse;
 import java.time.Clock;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -24,12 +26,14 @@ public class SubmissionService {
 
     private final SubmissionRepository submissionRepository;
     private final ProblemRepository problemRepository;
+    private final ApplicationEventPublisher eventPublisher;
     private final Clock clock;
 
     public SubmissionService(SubmissionRepository submissionRepository, ProblemRepository problemRepository,
-                             Clock clock) {
+                             ApplicationEventPublisher eventPublisher, Clock clock) {
         this.submissionRepository = submissionRepository;
         this.problemRepository = problemRepository;
+        this.eventPublisher = eventPublisher;
         this.clock = clock;
     }
 
@@ -40,6 +44,7 @@ public class SubmissionService {
                 .orElseThrow(() -> new ValidationException("problemId", "problem does not exist"));
         Submission submission = submissionRepository.save(new Submission(user.id(), problem.getId(),
                 request.language(), request.sourceCode(), clock.instant()));
+        eventPublisher.publishEvent(new SubmissionCreatedEvent(submission.getId()));
         return new SubmitResponse(submission.getId(), submission.getStatus());
     }
 

@@ -25,8 +25,15 @@ spring:
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USER:codearena}
     password: ${RABBITMQ_PASSWORD:codearena}
+    connection-timeout: ${RABBITMQ_CONNECTION_TIMEOUT:5s}
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    template:
+      mandatory: true
 
 codearena:
+  messaging:
+    confirm-timeout: ${MESSAGING_CONFIRM_TIMEOUT:10s}
   jwt:
     secret: ${JWT_SECRET}
     access-token-ttl: ${JWT_ACCESS_TOKEN_TTL:2h}
@@ -36,10 +43,6 @@ codearena:
     username: ${ADMIN_USERNAME:}
     email: ${ADMIN_EMAIL:}
     password: ${ADMIN_PASSWORD:}
-  queues:
-    jobs: ${JUDGE_JOBS_QUEUE:judge.jobs}
-    results: ${JUDGE_RESULTS_QUEUE:judge.results}
-    dead-letter: ${JUDGE_DLQ:judge.jobs.dlq}
 
 management:
   endpoints:

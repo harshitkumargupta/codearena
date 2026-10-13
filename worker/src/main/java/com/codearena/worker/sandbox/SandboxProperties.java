@@ -3,6 +3,8 @@ package com.codearena.worker.sandbox;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import java.time.Duration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
@@ -20,6 +22,8 @@ public record SandboxProperties(
         @Min(1000) int compileTimeLimitMs,
         @Min(128) int compileMemoryMb,
         @Min(0) int javaOverheadMb,
-        @Min(1024) int maxCompiledBytes
+        @Min(1024) int maxCompiledBytes,
+        @NotNull Duration staleContainerAge,
+        @NotNull Duration janitorInterval
 ) {
 }

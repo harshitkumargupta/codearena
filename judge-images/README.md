@@ -29,3 +29,9 @@ export DOCKER_HOST="unix://$HOME/.colima/default/docker.sock"
 
 `docker context inspect colima --format '{{.Endpoints.docker.Host}}'` prints the exact path. The sandbox
 tests skip with a message when the daemon is unreachable or the images are missing.
+
+The RabbitMQ Testcontainers test also needs the socket path as seen inside the Colima VM:
+
+```sh
+export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock
+```

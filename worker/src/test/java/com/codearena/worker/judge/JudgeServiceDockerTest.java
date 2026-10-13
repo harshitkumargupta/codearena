@@ -17,6 +17,7 @@ import com.codearena.common.Verdict;
 import com.codearena.worker.sandbox.DockerSandboxTestBase;
 import com.codearena.worker.sandbox.Program;
 import com.codearena.worker.sandbox.SandboxRunner;
+import com.codearena.worker.testsupport.LogCapture;
 import java.util.List;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;

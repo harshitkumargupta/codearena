@@ -20,6 +20,7 @@ import com.codearena.worker.sandbox.Program;
 import com.codearena.worker.sandbox.SandboxOutcome;
 import com.codearena.worker.sandbox.SandboxResult;
 import com.codearena.worker.sandbox.SandboxRunner;
+import com.codearena.worker.testsupport.LogCapture;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
