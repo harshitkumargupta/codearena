@@ -1,0 +1,6 @@
+codearena:
+  jwt:
+    secret: test-secret-test-secret-test-secret-0123
+    access-token-ttl: 15m
+  cors:
+    allowed-origins: http://localhost:5173
