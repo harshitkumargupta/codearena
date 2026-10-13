@@ -20,6 +20,41 @@ spring:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
+  http:
+    client:
+      connect-timeout: ${AI_CONNECT_TIMEOUT:5s}
+      read-timeout: ${AI_READ_TIMEOUT:60s}
+  ai:
+    retry:
+      max-attempts: 1
+    model:
+      chat: ${AI_CHAT_PROVIDER:ollama}
+      embedding: none
+      embedding.text: none
+      embedding.multimodal: none
+      image: none
+      audio.speech: none
+      audio.transcription: none
+      moderation: none
+    chat:
+      observations:
+        log-prompt: false
+        log-completion: false
+    ollama:
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+      chat:
+        options:
+          model: ${OLLAMA_MODEL:qwen2.5-coder:1.5b}
+          temperature: ${AI_TEMPERATURE:0.2}
+          num-predict: ${AI_MAX_TOKENS:400}
+    openai:
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com}
+      api-key: ${OPENAI_API_KEY:}
+      chat:
+        options:
+          model: ${OPENAI_MODEL:gpt-4o-mini}
+          temperature: ${AI_TEMPERATURE:0.2}
+          max-tokens: ${AI_MAX_TOKENS:400}
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
@@ -32,6 +67,12 @@ spring:
       mandatory: true
 
 codearena:
+  tutor:
+    level3-cooldown: ${TUTOR_LEVEL3_COOLDOWN:5m}
+    daily-cap: ${TUTOR_DAILY_CAP:30}
+    max-code-block-lines: ${TUTOR_MAX_CODE_BLOCK_LINES:10}
+    max-source-chars: ${TUTOR_MAX_SOURCE_CHARS:12000}
+    max-statement-chars: ${TUTOR_MAX_STATEMENT_CHARS:8000}
   leaderboard:
     default-limit: ${LEADERBOARD_DEFAULT_LIMIT:50}
     max-limit: ${LEADERBOARD_MAX_LIMIT:200}
@@ -62,3 +103,7 @@ management:
   endpoint:
     health:
       show-details: ${HEALTH_SHOW_DETAILS:never}
+
+logging:
+  level:
+    org.springframework.ai.retry: ERROR
