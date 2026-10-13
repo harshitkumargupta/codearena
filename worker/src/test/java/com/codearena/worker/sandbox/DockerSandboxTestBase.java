@@ -82,6 +82,9 @@ public abstract class DockerSandboxTestBase {
     }
 
     private static void skip(String reason) {
+        if ("true".equalsIgnoreCase(System.getenv("CI_REQUIRE_DOCKER"))) {
+            throw new IllegalStateException(reason + " (CI_REQUIRE_DOCKER=true, so this fails instead of skipping)");
+        }
         System.err.println("[sandbox tests skipped] " + reason);
         Assumptions.abort(reason);
     }

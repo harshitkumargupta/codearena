@@ -1,5 +1,6 @@
 package com.codearena.api.tutor;
 
+import com.codearena.api.ratelimit.RateLimiter;
 import com.codearena.api.security.AuthUser;
 import com.codearena.api.tutor.dto.ExplainFailureRequest;
 import com.codearena.api.tutor.dto.HintRequest;
@@ -12,7 +13,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 /**
- * Hint and failure-explanation flow: authorize and load context, reserve limits, call the model, apply the code
+ * Hint and failure-explanation flow: authorize and load context, take a per-minute rate-limit token (also spent by
+ * fallbacks and failures), reserve the cooldown and daily cap, call the model, apply the code
  * guardrail (one stricter retry, then a fixed fallback), and only for a delivered answer commit the limits and write
  * a hint log. Prompts, code and model output are never logged.
  */
@@ -32,17 +34,19 @@ public class TutorService {
     private final TutorPromptBuilder promptBuilder;
     private final TutorModel model;
     private final TutorLimiter limiter;
+    private final RateLimiter rateLimiter;
     private final HintLogRepository hintLogRepository;
     private final TutorProperties properties;
     private final Clock clock;
 
     public TutorService(TutorContextLoader contextLoader, TutorPromptBuilder promptBuilder, TutorModel model,
-                        TutorLimiter limiter, HintLogRepository hintLogRepository, TutorProperties properties,
-                        Clock clock) {
+                        TutorLimiter limiter, RateLimiter rateLimiter, HintLogRepository hintLogRepository,
+                        TutorProperties properties, Clock clock) {
         this.contextLoader = contextLoader;
         this.promptBuilder = promptBuilder;
         this.model = model;
         this.limiter = limiter;
+        this.rateLimiter = rateLimiter;
         this.hintLogRepository = hintLogRepository;
         this.properties = properties;
         this.clock = clock;
@@ -65,6 +69,7 @@ public class TutorService {
     private TutorResponse answer(AuthUser user, TutorContext context, HintKind kind, Integer level,
                                  int allowedCodeLines, Function<Boolean, TutorPrompt> prompts, String fallback) {
         long started = System.nanoTime();
+        rateLimiter.checkTutor(user.id());
         try (TutorReservation reservation = limiter.reserve(user.id(), context.problemId(),
                 kind == HintKind.HINT && level == 3)) {
             Optional<String> text = generateWithinRules(kind, level, allowedCodeLines, prompts);

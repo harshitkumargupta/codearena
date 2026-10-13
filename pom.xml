@@ -21,6 +21,7 @@
         <module>common</module>
         <module>api</module>
         <module>worker</module>
+        <module>integration-tests</module>
     </modules>
 
     <properties>
@@ -29,6 +30,7 @@
         <docker-java.version>3.7.1</docker-java.version>
         <commons-compress.version>1.28.0</commons-compress.version>
         <spring-ai.version>1.1.8</spring-ai.version>
+        <bucket4j.version>8.21.0</bucket4j.version>
     </properties>
 
     <dependencyManagement>
@@ -44,6 +46,11 @@
                 <groupId>com.codearena</groupId>
                 <artifactId>common</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.docker-java</groupId>
+                <artifactId>docker-java-api</artifactId>
+                <version>${docker-java.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.github.docker-java</groupId>
@@ -64,6 +71,26 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-compress</artifactId>
                 <version>${commons-compress.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.codearena</groupId>
+                <artifactId>api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.codearena</groupId>
+                <artifactId>worker</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.bucket4j</groupId>
+                <artifactId>bucket4j_jdk17-core</artifactId>
+                <version>${bucket4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.bucket4j</groupId>
+                <artifactId>bucket4j_jdk17-lettuce</artifactId>
+                <version>${bucket4j.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.jsonwebtoken</groupId>

@@ -1,5 +1,6 @@
 package com.codearena.api.submission;
 
+import com.codearena.api.ratelimit.RateLimiter;
 import com.codearena.api.security.AuthUser;
 import com.codearena.api.submission.dto.SubmissionResponse;
 import com.codearena.api.submission.dto.SubmissionSummary;
@@ -23,14 +24,17 @@ import org.springframework.web.bind.annotation.RestController;
 public class SubmissionController {
 
     private final SubmissionService submissionService;
+    private final RateLimiter rateLimiter;
 
-    public SubmissionController(SubmissionService submissionService) {
+    public SubmissionController(SubmissionService submissionService, RateLimiter rateLimiter) {
         this.submissionService = submissionService;
+        this.rateLimiter = rateLimiter;
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public SubmitResponse submit(@Valid @RequestBody SubmitRequest request, @AuthenticationPrincipal AuthUser user) {
+        rateLimiter.checkSubmission(user.id());
         return submissionService.submit(user, request);
     }
 

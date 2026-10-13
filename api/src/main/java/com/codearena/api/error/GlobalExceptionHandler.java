@@ -1,8 +1,12 @@
 package com.codearena.api.error;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.codearena.api.web.PayloadTooLargeException;
+import com.codearena.api.web.RequestSizeLimitFilter;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -66,6 +71,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiError> handleUnreadable(HttpMessageNotReadableException ex, HttpServletRequest request) {
+        for (Throwable t = ex; t != null; t = t.getCause()) {
+            if (t instanceof PayloadTooLargeException tooLarge) {
+                return respond(HttpStatus.PAYLOAD_TOO_LARGE, RequestSizeLimitFilter.tooLargeMessage(tooLarge.getLimit()),
+                        request, List.of());
+            }
+        }
         if (ex.getCause() instanceof InvalidFormatException ife && ife.getTargetType() != null
                 && ife.getTargetType().isEnum()) {
             String allowed = Arrays.stream(ife.getTargetType().getEnumConstants())
@@ -99,6 +110,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleMediaType(HttpMediaTypeNotSupportedException ex,
                                                     HttpServletRequest request) {
         return respond(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Unsupported content type", request, List.of());
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
+    public void handleNotAcceptable(HttpMediaTypeNotAcceptableException ex, HttpServletRequest request,
+                                    HttpServletResponse response) throws IOException {
+        writer.write(request, response, HttpStatus.NOT_ACCEPTABLE, "Only application/json responses are available");
     }
 
     @ExceptionHandler(NoResourceFoundException.class)

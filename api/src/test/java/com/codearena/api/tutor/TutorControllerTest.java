@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.codearena.api.error.ConflictException;
 import com.codearena.api.error.ForbiddenException;
 import com.codearena.api.error.TooManyRequestsException;
+import com.codearena.api.ratelimit.RateLimiter;
 import com.codearena.api.security.AuthUser;
 import com.codearena.api.security.JwtService;
 import com.codearena.api.support.WebSecurityTestConfig;
@@ -40,6 +41,9 @@ class TutorControllerTest {
 
     @MockitoBean
     private TutorService tutorService;
+
+    @MockitoBean
+    private RateLimiter rateLimiter;
 
     @Test
     void requiresAuthentication() throws Exception {

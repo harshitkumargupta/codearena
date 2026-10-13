@@ -5,6 +5,8 @@ import com.codearena.api.auth.dto.LoginRequest;
 import com.codearena.api.auth.dto.RegisterRequest;
 import com.codearena.api.auth.dto.UserResponse;
 import com.codearena.api.security.AuthUser;
+import com.codearena.api.ratelimit.RateLimiter;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,19 +22,23 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final RateLimiter rateLimiter;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, RateLimiter rateLimiter) {
         this.authService = authService;
+        this.rateLimiter = rateLimiter;
     }
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public AuthResponse register(@Valid @RequestBody RegisterRequest request) {
+    public AuthResponse register(@Valid @RequestBody RegisterRequest request, HttpServletRequest http) {
+        rateLimiter.checkRegister(http);
         return authService.register(request);
     }
 
     @PostMapping("/login")
-    public AuthResponse login(@Valid @RequestBody LoginRequest request) {
+    public AuthResponse login(@Valid @RequestBody LoginRequest request, HttpServletRequest http) {
+        rateLimiter.checkLogin(http, request.username());
         return authService.login(request);
     }
 

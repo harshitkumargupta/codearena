@@ -8,6 +8,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.codearena.api.error.TooManyRequestsException;
+import com.codearena.api.ratelimit.RateLimiter;
 import com.codearena.api.security.AuthUser;
 import com.codearena.api.support.DockerAvailability;
 import com.codearena.api.tutor.dto.HintRequest;
@@ -77,7 +78,7 @@ class TutorLimiterRedisTest {
             return new TutorContext(request.problemId(), "P", "statement", null, null, false);
         });
         service = new TutorService(loader, new TutorPromptBuilder(PROPERTIES), model,
-                new TutorLimiter(redis, PROPERTIES, clock), hintLogs, PROPERTIES, clock);
+                new TutorLimiter(redis, PROPERTIES, clock), mock(RateLimiter.class), hintLogs, PROPERTIES, clock);
         when(model.generate(any())).thenReturn("Think about complements.");
     }
 

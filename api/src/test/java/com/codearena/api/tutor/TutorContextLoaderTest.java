@@ -10,6 +10,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.codearena.api.contest.ContestProblemRepository;
 import com.codearena.api.error.ConflictException;
 import com.codearena.api.error.ForbiddenException;
 import com.codearena.api.error.NotFoundException;
@@ -23,6 +24,8 @@ import com.codearena.api.tutor.dto.ExplainFailureRequest;
 import com.codearena.api.tutor.dto.HintRequest;
 import com.codearena.api.user.Role;
 import com.codearena.common.Verdict;
+import java.time.Clock;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,8 +42,9 @@ class TutorContextLoaderTest {
     private final ProblemRepository problemRepository = mock(ProblemRepository.class);
     private final SubmissionRepository submissionRepository = mock(SubmissionRepository.class);
     private final TestCaseRepository testCaseRepository = mock(TestCaseRepository.class);
-    private final TutorContextLoader loader =
-            new TutorContextLoader(problemRepository, submissionRepository, testCaseRepository);
+    private final ContestProblemRepository contestProblemRepository = mock(ContestProblemRepository.class);
+    private final TutorContextLoader loader = new TutorContextLoader(problemRepository, submissionRepository,
+            testCaseRepository, contestProblemRepository, Clock.fixed(TutorFixtures.NOW, ZoneOffset.UTC));
 
     @BeforeEach
     void problemOneWithOneSampleAndOneHiddenCase() {
@@ -114,6 +118,26 @@ class TutorContextLoaderTest {
         assertThat(context.failedOnHiddenCase()).isTrue();
         assertThat(context.toString()).doesNotContain(HIDDEN_INPUT, HIDDEN_EXPECTED);
         verify(testCaseRepository, never()).findByProblemIdOrderByOrdinalAsc(anyLong());
+    }
+
+    @Test
+    void tutorIsRefusedForAProblemInARunningContest() {
+        when(contestProblemRepository.isInRunningContest(1L, TutorFixtures.NOW)).thenReturn(true);
+        stubSubmission(Verdict.WRONG_ANSWER, 1);
+
+        assertThatThrownBy(() -> loader.forHint(OWNER, new HintRequest(1L, 1, null)))
+                .isInstanceOf(ForbiddenException.class)
+                .hasMessage(TutorContextLoader.CONTEST_RUNNING);
+        assertThatThrownBy(() -> loader.forExplanation(OWNER, new ExplainFailureRequest(10L)))
+                .isInstanceOf(ForbiddenException.class)
+                .hasMessage(TutorContextLoader.CONTEST_RUNNING);
+    }
+
+    @Test
+    void adminMayUseTheTutorDuringAContest() {
+        when(contestProblemRepository.isInRunningContest(1L, TutorFixtures.NOW)).thenReturn(true);
+
+        assertThat(loader.forHint(ADMIN, new HintRequest(1L, 1, null)).problemId()).isEqualTo(1L);
     }
 
     @Test

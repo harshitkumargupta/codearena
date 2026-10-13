@@ -1,5 +1,6 @@
 package com.codearena.api.tutor;
 
+import com.codearena.api.contest.ContestProblemRepository;
 import com.codearena.api.error.ConflictException;
 import com.codearena.api.error.ForbiddenException;
 import com.codearena.api.error.NotFoundException;
@@ -14,6 +15,7 @@ import com.codearena.api.submission.SubmissionRepository;
 import com.codearena.api.tutor.dto.ExplainFailureRequest;
 import com.codearena.api.tutor.dto.HintRequest;
 import com.codearena.common.Verdict;
+import java.time.Clock;
 import java.util.EnumSet;
 import java.util.Set;
 import org.springframework.stereotype.Component;
@@ -22,18 +24,26 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class TutorContextLoader {
 
+    static final String CONTEST_RUNNING = "The AI tutor is not available for this problem while a contest that "
+            + "includes it is running.";
+
     static final Set<Verdict> EXPLAINABLE = EnumSet.of(Verdict.WRONG_ANSWER, Verdict.TIME_LIMIT_EXCEEDED,
             Verdict.MEMORY_LIMIT_EXCEEDED, Verdict.RUNTIME_ERROR, Verdict.COMPILATION_ERROR);
 
     private final ProblemRepository problemRepository;
     private final SubmissionRepository submissionRepository;
     private final TestCaseRepository testCaseRepository;
+    private final ContestProblemRepository contestProblemRepository;
+    private final Clock clock;
 
     public TutorContextLoader(ProblemRepository problemRepository, SubmissionRepository submissionRepository,
-                              TestCaseRepository testCaseRepository) {
+                              TestCaseRepository testCaseRepository, ContestProblemRepository contestProblemRepository,
+                              Clock clock) {
         this.problemRepository = problemRepository;
         this.submissionRepository = submissionRepository;
         this.testCaseRepository = testCaseRepository;
+        this.contestProblemRepository = contestProblemRepository;
+        this.clock = clock;
     }
 
     @Transactional(readOnly = true)
@@ -41,6 +51,7 @@ public class TutorContextLoader {
         Problem problem = problemRepository.findById(request.problemId())
                 .filter(Problem::isPublished)
                 .orElseThrow(() -> new NotFoundException("Problem not found"));
+        rejectDuringRunningContest(user, problem);
         Submission submission = null;
         if (request.submissionId() != null) {
             submission = ownedSubmission(user, request.submissionId());
@@ -61,7 +72,14 @@ public class TutorContextLoader {
         }
         Problem problem = problemRepository.findById(submission.getProblemId())
                 .orElseThrow(() -> new NotFoundException("Problem not found"));
+        rejectDuringRunningContest(user, problem);
         return build(problem, submission);
+    }
+
+    private void rejectDuringRunningContest(AuthUser user, Problem problem) {
+        if (!user.isAdmin() && contestProblemRepository.isInRunningContest(problem.getId(), clock.instant())) {
+            throw new ForbiddenException(CONTEST_RUNNING);
+        }
     }
 
     private Submission ownedSubmission(AuthUser user, long submissionId) {

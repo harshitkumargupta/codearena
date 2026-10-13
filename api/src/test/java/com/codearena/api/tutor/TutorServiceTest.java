@@ -5,12 +5,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.codearena.api.error.TooManyRequestsException;
+import com.codearena.api.ratelimit.RateLimiter;
 import com.codearena.api.security.AuthUser;
 import com.codearena.api.tutor.dto.ExplainFailureRequest;
 import com.codearena.api.tutor.dto.HintRequest;
@@ -39,8 +42,9 @@ class TutorServiceTest {
     private final TutorLimiter limiter = mock(TutorLimiter.class);
     private final TutorReservation reservation = mock(TutorReservation.class);
     private final HintLogRepository hintLogs = mock(HintLogRepository.class);
+    private final RateLimiter rateLimiter = mock(RateLimiter.class);
     private final TutorService service = new TutorService(loader,
-            new TutorPromptBuilder(TutorFixtures.PROPERTIES, () -> "n0nce"), model, limiter, hintLogs,
+            new TutorPromptBuilder(TutorFixtures.PROPERTIES, () -> "n0nce"), model, limiter, rateLimiter, hintLogs,
             TutorFixtures.PROPERTIES, Clock.fixed(TutorFixtures.NOW, ZoneOffset.UTC));
 
     @BeforeEach
@@ -68,6 +72,18 @@ class TutorServiceTest {
         verify(reservation, never()).commit();
         verify(reservation).close();
         verify(hintLogs, never()).save(any());
+        verify(rateLimiter).checkTutor(1L);
+    }
+
+    @Test
+    void perMinuteLimitIsCheckedBeforeAnyModelCallOrReservation() {
+        doThrow(new TooManyRequestsException("Too many tutor requests.", 12))
+                .when(rateLimiter).checkTutor(1L);
+
+        assertThatThrownBy(() -> service.hint(ALICE, new HintRequest(5L, 1, null)))
+                .isInstanceOf(TooManyRequestsException.class);
+        verify(model, never()).generate(any());
+        verify(limiter, never()).reserve(anyLong(), anyLong(), anyBoolean());
     }
 
     @Test

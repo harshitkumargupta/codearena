@@ -67,6 +67,29 @@ spring:
       mandatory: true
 
 codearena:
+  http:
+    max-body-bytes: ${HTTP_MAX_BODY_BYTES:262144}
+    max-test-case-body-bytes: ${HTTP_MAX_TEST_CASE_BODY_BYTES:33554432}
+  problems:
+    max-test-data-bytes: ${PROBLEM_MAX_TEST_DATA_BYTES:67108864}
+  rate-limit:
+    trusted-proxies: ${RATE_LIMIT_TRUSTED_PROXIES:}
+    redis-timeout: ${RATE_LIMIT_REDIS_TIMEOUT:2s}
+    submissions:
+      capacity: ${RATE_LIMIT_SUBMISSIONS_PER_MINUTE:10}
+      period: 1m
+    login-per-ip:
+      capacity: ${RATE_LIMIT_LOGIN_PER_IP_PER_MINUTE:30}
+      period: 1m
+    login-per-username:
+      capacity: ${RATE_LIMIT_LOGIN_PER_USERNAME_PER_MINUTE:10}
+      period: 1m
+    register-per-ip:
+      capacity: ${RATE_LIMIT_REGISTER_PER_IP_PER_HOUR:10}
+      period: 1h
+    tutor:
+      capacity: ${RATE_LIMIT_TUTOR_PER_MINUTE:5}
+      period: 1m
   tutor:
     level3-cooldown: ${TUTOR_LEVEL3_COOLDOWN:5m}
     daily-cap: ${TUTOR_DAILY_CAP:30}

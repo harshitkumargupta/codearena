@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.codearena.api.ratelimit.RateLimiter;
 import com.codearena.api.security.AuthUser;
 import com.codearena.api.security.JwtService;
 import com.codearena.api.submission.dto.SubmitRequest;
@@ -46,6 +47,9 @@ class SubmissionControllerTest {
 
     @MockitoBean
     private SubmissionService submissionService;
+
+    @MockitoBean
+    private RateLimiter rateLimiter;
 
     @Test
     void validSubmissionReturnsPendingId() throws Exception {

@@ -27,8 +27,13 @@ public class ErrorResponseWriter {
 
     public void write(HttpServletRequest request, HttpServletResponse response, HttpStatus status, String message)
             throws IOException {
+        write(request, response, status, message, request.getRequestURI());
+    }
+
+    public void write(HttpServletRequest request, HttpServletResponse response, HttpStatus status, String message,
+                      String path) throws IOException {
         response.setStatus(status.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        objectMapper.writeValue(response.getOutputStream(), build(status, message, request.getRequestURI(), List.of()));
+        objectMapper.writeValue(response.getOutputStream(), build(status, message, path, List.of()));
     }
 }

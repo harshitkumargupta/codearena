@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.codearena.api.auth.dto.AuthResponse;
 import com.codearena.api.auth.dto.UserResponse;
+import com.codearena.api.ratelimit.RateLimiter;
 import com.codearena.api.security.AuthUser;
 import com.codearena.api.security.JwtService;
 import com.codearena.api.support.WebSecurityTestConfig;
@@ -41,6 +42,9 @@ class AuthControllerTest {
 
     @MockitoBean
     private AuthService authService;
+
+    @MockitoBean
+    private RateLimiter rateLimiter;
 
     @Test
     void registerWithInvalidBodyReturnsFieldErrors() throws Exception {
