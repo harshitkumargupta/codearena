@@ -1,5 +1,6 @@
 package com.codearena.api.ratelimit;
 
+import com.codearena.api.metrics.ApiMetrics;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -21,7 +22,7 @@ public class RateLimitConfig {
 
     @Bean
     public RateLimiter rateLimiter(BucketStore bucketStore, ClientIpResolver clientIpResolver,
-                                   RateLimitProperties properties) {
-        return new RateLimiter(bucketStore, clientIpResolver, properties);
+                                   RateLimitProperties properties, ApiMetrics metrics) {
+        return new RateLimiter(bucketStore, clientIpResolver, properties, metrics);
     }
 }

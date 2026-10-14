@@ -13,6 +13,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.codearena.api.error.TooManyRequestsException;
+import com.codearena.api.metrics.ApiMetrics;
+import com.codearena.api.metrics.TutorOutcome;
 import com.codearena.api.ratelimit.RateLimiter;
 import com.codearena.api.security.AuthUser;
 import com.codearena.api.tutor.dto.ExplainFailureRequest;
@@ -21,9 +23,11 @@ import com.codearena.api.tutor.dto.TutorResponse;
 import com.codearena.api.user.Role;
 import com.codearena.common.Language;
 import com.codearena.common.Verdict;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Clock;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Locale;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -43,9 +47,11 @@ class TutorServiceTest {
     private final TutorReservation reservation = mock(TutorReservation.class);
     private final HintLogRepository hintLogs = mock(HintLogRepository.class);
     private final RateLimiter rateLimiter = mock(RateLimiter.class);
+    private final SimpleMeterRegistry registry = new SimpleMeterRegistry();
     private final TutorService service = new TutorService(loader,
             new TutorPromptBuilder(TutorFixtures.PROPERTIES, () -> "n0nce"), model, limiter, rateLimiter, hintLogs,
-            TutorFixtures.PROPERTIES, Clock.fixed(TutorFixtures.NOW, ZoneOffset.UTC));
+            TutorFixtures.PROPERTIES, new ApiMetrics(registry),
+            Clock.fixed(TutorFixtures.NOW, ZoneOffset.UTC));
 
     @BeforeEach
     void contextAndReservation() {
@@ -169,5 +175,29 @@ class TutorServiceTest {
         verify(reservation, never()).commit();
         verify(reservation).close();
         verify(hintLogs, never()).save(any());
+    }
+
+    @Test
+    void eachCallIsCountedOnceUnderItsOutcome() {
+        when(model.generate(any())).thenReturn(PROSE);
+        service.hint(ALICE, new HintRequest(5L, 1, null));
+
+        when(model.generate(any())).thenReturn(LONG_BLOCK);
+        service.hint(ALICE, new HintRequest(5L, 1, null));
+
+        when(model.generate(any())).thenThrow(new TutorUnavailableException());
+        assertThatThrownBy(() -> service.hint(ALICE, new HintRequest(5L, 1, null)))
+                .isInstanceOf(TutorUnavailableException.class);
+
+        doThrow(new TooManyRequestsException("Too many tutor requests.", 12)).when(rateLimiter).checkTutor(1L);
+        assertThatThrownBy(() -> service.explainFailure(ALICE, new ExplainFailureRequest(9L)))
+                .isInstanceOf(TooManyRequestsException.class);
+
+        for (TutorOutcome outcome : TutorOutcome.values()) {
+            assertThat(registry.get(ApiMetrics.TUTOR_CALLS)
+                    .tag("outcome", outcome.name().toLowerCase(Locale.ROOT)).counter().count())
+                    .as(outcome.name())
+                    .isEqualTo(1.0);
+        }
     }
 }

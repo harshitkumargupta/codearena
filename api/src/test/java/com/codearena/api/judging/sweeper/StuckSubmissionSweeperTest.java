@@ -9,8 +9,10 @@ import static org.mockito.Mockito.when;
 
 import com.codearena.api.judging.JudgeJobPublisher;
 import com.codearena.api.judging.SubmissionResultService;
+import com.codearena.api.metrics.ApiMetrics;
 import com.codearena.api.submission.StuckSubmission;
 import com.codearena.api.submission.SubmissionRepository;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -29,7 +31,8 @@ class StuckSubmissionSweeperTest {
     private final JudgeJobPublisher publisher = mock(JudgeJobPublisher.class);
     private final StuckSubmissionClaimer claimer =
             new StuckSubmissionClaimer(repository, resultService, PROPERTIES, Clock.fixed(NOW, ZoneOffset.UTC));
-    private final StuckSubmissionSweeper sweeper = new StuckSubmissionSweeper(claimer, publisher);
+    private final StuckSubmissionSweeper sweeper = new StuckSubmissionSweeper(claimer, publisher,
+            new ApiMetrics(new SimpleMeterRegistry()));
 
     @Test
     void looksForRowsQueuedMoreThanStuckAfterAgo() {

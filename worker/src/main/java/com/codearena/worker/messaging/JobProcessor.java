@@ -7,6 +7,7 @@ import com.codearena.common.Verdict;
 import com.codearena.worker.judge.JudgeService;
 import com.rabbitmq.client.Channel;
 import java.io.IOException;
+import java.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
@@ -26,11 +27,14 @@ public class JobProcessor {
     private final MessageConverter converter;
     private final JudgeService judgeService;
     private final ResultPublisher resultPublisher;
+    private final JudgeMetrics metrics;
 
-    public JobProcessor(MessageConverter converter, JudgeService judgeService, ResultPublisher resultPublisher) {
+    public JobProcessor(MessageConverter converter, JudgeService judgeService, ResultPublisher resultPublisher,
+                        JudgeMetrics metrics) {
         this.converter = converter;
         this.judgeService = judgeService;
         this.resultPublisher = resultPublisher;
+        this.metrics = metrics;
     }
 
     public void process(Message message, Channel channel) throws IOException {
@@ -50,7 +54,9 @@ public class JobProcessor {
         log.info("Judging submission {} (attempt {}/{})", submissionId, attempt, JudgeQueues.MAX_ATTEMPTS);
         try {
             publishRunning(submissionId);
+            long started = System.nanoTime();
             JudgeResult result = judgeService.judge(job);
+            metrics.recordJudge(job.language(), result.verdict(), Duration.ofNanos(System.nanoTime() - started));
             if (result.verdict() == Verdict.INTERNAL_ERROR) {
                 log.warn("Judge error for submission {} on attempt {}/{}; returning job to the queue", submissionId,
                         attempt, JudgeQueues.MAX_ATTEMPTS);

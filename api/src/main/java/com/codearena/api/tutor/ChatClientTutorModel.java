@@ -4,14 +4,18 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
  * Sends prompts through Spring AI's ChatClient; the provider (Ollama or an OpenAI-compatible endpoint) is chosen by
  * {@code spring.ai.model.chat}. Messages are passed as objects so user code is never parsed as a prompt template.
+ * With no chat model (provider {@code none}, or OpenAI without a key) every call is unavailable (503).
  */
 @Component
 public class ChatClientTutorModel implements TutorModel {
@@ -20,12 +24,23 @@ public class ChatClientTutorModel implements TutorModel {
 
     private final ChatClient chatClient;
 
-    public ChatClientTutorModel(ChatClient.Builder chatClientBuilder) {
-        this.chatClient = chatClientBuilder.build();
+    @Autowired
+    public ChatClientTutorModel(ObjectProvider<ChatModel> chatModels, ObjectProvider<ChatClient.Builder> builders) {
+        this(chatModels.getIfAvailable() == null ? null : builders.getObject());
+    }
+
+    ChatClientTutorModel(ChatClient.Builder chatClientBuilder) {
+        this.chatClient = chatClientBuilder == null ? null : chatClientBuilder.build();
+        if (chatClient == null) {
+            log.warn("AI tutor disabled: no chat model is configured; tutor endpoints answer 503");
+        }
     }
 
     @Override
     public String generate(TutorPrompt prompt) {
+        if (chatClient == null) {
+            throw new TutorUnavailableException();
+        }
         String content;
         try {
             content = chatClient

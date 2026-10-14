@@ -1,5 +1,9 @@
 package com.codearena.api.tutor;
 
+import com.codearena.api.error.ServiceUnavailableException;
+import com.codearena.api.error.TooManyRequestsException;
+import com.codearena.api.metrics.ApiMetrics;
+import com.codearena.api.metrics.TutorOutcome;
 import com.codearena.api.ratelimit.RateLimiter;
 import com.codearena.api.security.AuthUser;
 import com.codearena.api.tutor.dto.ExplainFailureRequest;
@@ -37,11 +41,12 @@ public class TutorService {
     private final RateLimiter rateLimiter;
     private final HintLogRepository hintLogRepository;
     private final TutorProperties properties;
+    private final ApiMetrics metrics;
     private final Clock clock;
 
     public TutorService(TutorContextLoader contextLoader, TutorPromptBuilder promptBuilder, TutorModel model,
                         TutorLimiter limiter, RateLimiter rateLimiter, HintLogRepository hintLogRepository,
-                        TutorProperties properties, Clock clock) {
+                        TutorProperties properties, ApiMetrics metrics, Clock clock) {
         this.contextLoader = contextLoader;
         this.promptBuilder = promptBuilder;
         this.model = model;
@@ -49,6 +54,7 @@ public class TutorService {
         this.rateLimiter = rateLimiter;
         this.hintLogRepository = hintLogRepository;
         this.properties = properties;
+        this.metrics = metrics;
         this.clock = clock;
     }
 
@@ -68,6 +74,22 @@ public class TutorService {
 
     private TutorResponse answer(AuthUser user, TutorContext context, HintKind kind, Integer level,
                                  int allowedCodeLines, Function<Boolean, TutorPrompt> prompts, String fallback) {
+        try {
+            TutorResponse response = limitedAnswer(user, context, kind, level, allowedCodeLines, prompts, fallback);
+            metrics.tutorCall(response.fallback() ? TutorOutcome.FALLBACK : TutorOutcome.OK);
+            return response;
+        } catch (TooManyRequestsException ex) {
+            metrics.tutorCall(TutorOutcome.BLOCKED);
+            throw ex;
+        } catch (ServiceUnavailableException ex) {
+            metrics.tutorCall(TutorOutcome.UNAVAILABLE);
+            throw ex;
+        }
+    }
+
+    private TutorResponse limitedAnswer(AuthUser user, TutorContext context, HintKind kind, Integer level,
+                                        int allowedCodeLines, Function<Boolean, TutorPrompt> prompts,
+                                        String fallback) {
         long started = System.nanoTime();
         rateLimiter.checkTutor(user.id());
         try (TutorReservation reservation = limiter.reserve(user.id(), context.problemId(),

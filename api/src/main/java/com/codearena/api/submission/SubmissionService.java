@@ -51,7 +51,7 @@ public class SubmissionService {
         }
         Submission submission = submissionRepository.save(new Submission(user.id(), problem.getId(),
                 request.contestId(), request.language(), request.sourceCode(), clock.instant()));
-        eventPublisher.publishEvent(new SubmissionCreatedEvent(submission.getId()));
+        eventPublisher.publishEvent(new SubmissionCreatedEvent(submission.getId(), submission.getLanguage()));
         return new SubmitResponse(submission.getId(), submission.getStatus());
     }
 

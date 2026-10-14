@@ -12,7 +12,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 @EnableConfigurationProperties(SweeperProperties.class)
 public class SchedulingConfig {
 
-    private static final int POOL_SIZE = 2;
+    private static final int POOL_SIZE = 3;
 
     /**
      * Named {@code taskScheduler} so @Scheduled jobs and the leaderboard coalescer use it instead of the STOMP

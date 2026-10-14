@@ -101,6 +101,7 @@ final class CodeArenaStack implements ExtensionContext.Store.CloseableResource {
         Map<String, Object> apiProps = new LinkedHashMap<>(rabbit);
         apiProps.put("spring.config.location", configFile("api"));
         apiProps.put("server.port", 0);
+        apiProps.put("management.server.port", 0);
         apiProps.put("spring.datasource.url", postgres.getJdbcUrl());
         apiProps.put("spring.datasource.username", postgres.getUsername());
         apiProps.put("spring.datasource.password", postgres.getPassword());
@@ -147,6 +148,10 @@ final class CodeArenaStack implements ExtensionContext.Store.CloseableResource {
 
     <T> T apiBean(Class<T> type) {
         return api.getBean(type);
+    }
+
+    <T> T workerBean(Class<T> type) {
+        return worker.getBean(type);
     }
 
     @Override

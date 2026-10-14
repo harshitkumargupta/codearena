@@ -5,6 +5,8 @@ import com.codearena.common.JudgeQueues;
 import com.codearena.common.JudgeResult;
 import com.codearena.common.Verdict;
 import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
 import org.springframework.context.ApplicationEventPublisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,13 +61,17 @@ public class SubmissionResultService {
 
     private void finish(long id, Verdict verdict, String detail, Integer failedTestOrdinal, Integer timeMs,
                         Integer memoryKb) {
+        Instant judgedAt = clock.instant();
         int updated = submissionRepository.finishIfOpen(id, verdict, detail, failedTestOrdinal, timeMs, memoryKb,
-                clock.instant());
+                judgedAt);
         if (updated == 0) {
             log.info("Ignoring {} for submission {}: already final or missing", verdict, id);
         } else {
             log.info("Submission {} judged {}", id, verdict);
             eventPublisher.publishEvent(new SubmissionStatusChangedEvent(id, verdict));
+            submissionRepository.findTiming(id).ifPresent(timing -> eventPublisher.publishEvent(
+                    new SubmissionFinalizedEvent(id, timing.language(), verdict,
+                            Duration.between(timing.createdAt(), judgedAt))));
         }
     }
 }

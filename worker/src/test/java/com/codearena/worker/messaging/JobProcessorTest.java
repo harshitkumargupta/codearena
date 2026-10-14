@@ -20,6 +20,7 @@ import com.codearena.worker.judge.JudgeService;
 import com.codearena.worker.testsupport.LogCapture;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.Channel;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +46,9 @@ class JobProcessorTest {
     private final JudgeService judgeService = mock(JudgeService.class);
     private final ResultPublisher publisher = mock(ResultPublisher.class);
     private final Channel channel = mock(Channel.class);
-    private final JobProcessor processor = new JobProcessor(converter, judgeService, publisher);
+    private final SimpleMeterRegistry registry = new SimpleMeterRegistry();
+    private final JobProcessor processor =
+            new JobProcessor(converter, judgeService, publisher, new JudgeMetrics(registry));
 
     @Test
     void acksOnlyAfterFinalResultIsPublished() throws Exception {
@@ -60,6 +63,17 @@ class JobProcessorTest {
         order.verify(publisher).publish(accepted);
         order.verify(channel).basicAck(TAG, false);
         verify(channel, never()).basicNack(anyLong(), anyBoolean(), anyBoolean());
+    }
+
+    @Test
+    void judgeDurationIsRecordedPerAttemptWithLanguageAndVerdict() throws Exception {
+        when(judgeService.judge(JOB)).thenReturn(new JudgeResult(7L, Verdict.ACCEPTED, null, 40, 5000, null));
+
+        processor.process(jobMessage(JOB), channel);
+        processor.process(jobMessage(JOB), channel);
+
+        assertThat(registry.get(JudgeMetrics.JUDGE_DURATION).tags("language", "python", "verdict", "accepted")
+                .timer().count()).isEqualTo(2);
     }
 
     @ParameterizedTest

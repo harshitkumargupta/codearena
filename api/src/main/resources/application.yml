@@ -108,6 +108,8 @@ codearena:
     batch-size: ${SWEEPER_BATCH_SIZE:50}
   messaging:
     confirm-timeout: ${MESSAGING_CONFIRM_TIMEOUT:10s}
+  metrics:
+    queue-depth-interval: ${METRICS_QUEUE_DEPTH_INTERVAL:15s}
   jwt:
     secret: ${JWT_SECRET}
     access-token-ttl: ${JWT_ACCESS_TOKEN_TTL:2h}
@@ -119,10 +121,12 @@ codearena:
     password: ${ADMIN_PASSWORD:}
 
 management:
+  server:
+    port: ${MANAGEMENT_PORT:9080}
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,prometheus
   endpoint:
     health:
       show-details: ${HEALTH_SHOW_DETAILS:never}

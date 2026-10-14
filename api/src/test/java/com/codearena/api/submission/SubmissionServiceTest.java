@@ -59,7 +59,7 @@ class SubmissionServiceTest {
         assertThat(saved.getValue().getUserId()).isEqualTo(1L);
         assertThat(saved.getValue().getStatus()).isEqualTo(Verdict.PENDING);
         assertThat(saved.getValue().getCreatedAt()).isEqualTo(NOW);
-        verify(eventPublisher).publishEvent(new SubmissionCreatedEvent(100L));
+        verify(eventPublisher).publishEvent(new SubmissionCreatedEvent(100L, Language.JAVA));
         verify(contestValidator, never()).validate(any(), org.mockito.ArgumentMatchers.anyLong(),
                 org.mockito.ArgumentMatchers.anyLong());
     }

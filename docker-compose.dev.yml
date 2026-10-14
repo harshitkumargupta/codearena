@@ -1,0 +1,14 @@
+# Host-run development: publishes the infrastructure ports on 127.0.0.1 so the api and worker can run with
+# `mvn spring-boot:run` against them. Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d postgres redis rabbitmq
+services:
+  postgres:
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
+  redis:
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+  rabbitmq:
+    ports:
+      - "127.0.0.1:${RABBITMQ_PORT:-5672}:5672"
+      - "127.0.0.1:${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"

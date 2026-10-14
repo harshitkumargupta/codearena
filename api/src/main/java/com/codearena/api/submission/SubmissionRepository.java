@@ -24,6 +24,9 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
     @Query("select s.userId from Submission s where s.id = :id")
     Optional<Long> findOwnerId(@Param("id") long id);
 
+    @Query("select new com.codearena.api.submission.SubmissionTiming(s.language, s.createdAt) from Submission s where s.id = :id")
+    Optional<SubmissionTiming> findTiming(@Param("id") long id);
+
     String LOCK_STUCK_SQL = """
             select s.id as "id", s.attempts_count as "attemptsCount"
               from submissions s

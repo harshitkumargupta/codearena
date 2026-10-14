@@ -5,7 +5,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.codearena.api.error.ServiceUnavailableException;
 import com.codearena.api.error.TooManyRequestsException;
+import com.codearena.api.metrics.ApiMetrics;
 import com.codearena.api.support.DockerAvailability;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Duration;
 import java.util.List;
 import org.junit.jupiter.api.AfterAll;
@@ -47,8 +49,10 @@ class RedisBucketStoreTest {
 
     @Test
     void twoLimitersShareTheSameBucketThroughRedis() {
-        RateLimiter first = new RateLimiter(store, new ClientIpResolver(List.of()), PROPERTIES);
-        RateLimiter second = new RateLimiter(store, new ClientIpResolver(List.of()), PROPERTIES);
+        RateLimiter first = new RateLimiter(store, new ClientIpResolver(List.of()), PROPERTIES,
+                new ApiMetrics(new SimpleMeterRegistry()));
+        RateLimiter second = new RateLimiter(store, new ClientIpResolver(List.of()), PROPERTIES,
+                new ApiMetrics(new SimpleMeterRegistry()));
 
         for (int i = 0; i < 3; i++) {
             first.checkSubmission(42L);
@@ -63,7 +67,8 @@ class RedisBucketStoreTest {
     @Test
     void unreachableRedisFailsClosedQuickly() {
         RedisBucketStore dead = new RedisBucketStore("127.0.0.1", 1, null, Duration.ofMillis(500));
-        RateLimiter limiter = new RateLimiter(dead, new ClientIpResolver(List.of()), PROPERTIES);
+        RateLimiter limiter = new RateLimiter(dead, new ClientIpResolver(List.of()), PROPERTIES,
+                new ApiMetrics(new SimpleMeterRegistry()));
         try {
             long started = System.nanoTime();
             assertThatThrownBy(() -> limiter.checkTutor(1L)).isInstanceOf(ServiceUnavailableException.class);

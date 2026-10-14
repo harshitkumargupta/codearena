@@ -3,6 +3,7 @@ package com.codearena.worker.messaging;
 import com.codearena.common.JudgeQueues;
 import com.codearena.worker.judge.JudgeService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.amqp.core.Declarables;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.QueueBuilder;
@@ -41,8 +42,13 @@ public class WorkerAmqpConfig {
     }
 
     @Bean
+    public JudgeMetrics judgeMetrics(MeterRegistry registry) {
+        return new JudgeMetrics(registry);
+    }
+
+    @Bean
     public JobProcessor jobProcessor(MessageConverter judgeMessageConverter, JudgeService judgeService,
-                                     ResultPublisher resultPublisher) {
-        return new JobProcessor(judgeMessageConverter, judgeService, resultPublisher);
+                                     ResultPublisher resultPublisher, JudgeMetrics judgeMetrics) {
+        return new JobProcessor(judgeMessageConverter, judgeService, resultPublisher, judgeMetrics);
     }
 }

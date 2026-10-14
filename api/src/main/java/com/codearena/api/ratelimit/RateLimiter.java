@@ -1,6 +1,7 @@
 package com.codearena.api.ratelimit;
 
 import com.codearena.api.error.ServiceUnavailableException;
+import com.codearena.api.metrics.ApiMetrics;
 import com.codearena.api.error.TooManyRequestsException;
 import io.github.bucket4j.BucketConfiguration;
 import io.github.bucket4j.ConsumptionProbe;
@@ -24,11 +25,14 @@ public class RateLimiter {
 
     private final BucketStore store;
     private final ClientIpResolver clientIp;
+    private final ApiMetrics metrics;
     private final Map<RateLimit, BucketConfiguration> configurations = new EnumMap<>(RateLimit.class);
 
-    public RateLimiter(BucketStore store, ClientIpResolver clientIp, RateLimitProperties properties) {
+    public RateLimiter(BucketStore store, ClientIpResolver clientIp, RateLimitProperties properties,
+                       ApiMetrics metrics) {
         this.store = store;
         this.clientIp = clientIp;
+        this.metrics = metrics;
         for (RateLimit limit : RateLimit.values()) {
             RateLimitProperties.Limit spec = properties.limit(limit);
             configurations.put(limit, BucketConfiguration.builder()
@@ -64,6 +68,7 @@ public class RateLimiter {
         }
         if (!probe.isConsumed()) {
             long seconds = (probe.getNanosToWaitForRefill() + 999_999_999L) / 1_000_000_000L;
+            metrics.rateLimitRejected(limit);
             throw new TooManyRequestsException(limit.message(), seconds);
         }
     }

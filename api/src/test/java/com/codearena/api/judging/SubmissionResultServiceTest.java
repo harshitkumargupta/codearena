@@ -4,20 +4,25 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.codearena.api.submission.SubmissionRepository;
+import com.codearena.api.submission.SubmissionTiming;
 import com.codearena.common.JudgeResult;
+import com.codearena.common.Language;
 import com.codearena.common.Verdict;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
-import org.springframework.context.ApplicationEventPublisher;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.springframework.context.ApplicationEventPublisher;
 
 class SubmissionResultServiceTest {
 
@@ -103,5 +108,21 @@ class SubmissionResultServiceTest {
 
         verify(repository).finishIfOpen(9L, Verdict.INTERNAL_ERROR, SubmissionResultService.JUDGING_STUCK_DETAIL, null,
                 null, null, NOW);
+    }
+
+    @Test
+    void duplicateFinalResultIsAnnouncedAsFinalizedOnlyOnce() {
+        JudgeResult accepted = new JudgeResult(9L, Verdict.ACCEPTED, null, 40, 5000, null);
+        when(repository.finishIfOpen(anyLong(), any(), any(), any(), any(), any(), any())).thenReturn(1, 0);
+        when(repository.findTiming(9L))
+                .thenReturn(Optional.of(new SubmissionTiming(Language.JAVA, NOW.minusSeconds(3))));
+
+        service.apply(accepted);
+        service.apply(accepted);
+
+        verify(eventPublisher, times(1)).publishEvent(
+                new SubmissionFinalizedEvent(9L, Language.JAVA, Verdict.ACCEPTED, Duration.ofSeconds(3)));
+        verify(eventPublisher, times(1)).publishEvent(new SubmissionStatusChangedEvent(9L, Verdict.ACCEPTED));
+        verify(repository, times(1)).findTiming(9L);
     }
 }

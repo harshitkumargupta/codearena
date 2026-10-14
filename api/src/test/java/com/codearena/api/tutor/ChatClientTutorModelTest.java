@@ -57,6 +57,14 @@ class ChatClientTutorModelTest {
                 .isInstanceOf(TutorUnavailableException.class);
     }
 
+    @Test
+    void withoutAChatModelEveryCallIsUnavailable() {
+        ChatClientTutorModel disabled = new ChatClientTutorModel((ChatClient.Builder) null);
+
+        assertThatThrownBy(() -> disabled.generate(new TutorPrompt("s", "u")))
+                .isInstanceOf(TutorUnavailableException.class);
+    }
+
     private static ChatResponse response(String text) {
         return new ChatResponse(List.of(new Generation(new AssistantMessage(text))));
     }

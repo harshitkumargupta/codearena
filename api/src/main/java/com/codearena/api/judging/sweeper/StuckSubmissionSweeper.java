@@ -1,6 +1,7 @@
 package com.codearena.api.judging.sweeper;
 
 import com.codearena.api.judging.JudgeJobPublisher;
+import com.codearena.api.metrics.ApiMetrics;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,10 +17,12 @@ public class StuckSubmissionSweeper {
 
     private final StuckSubmissionClaimer claimer;
     private final JudgeJobPublisher publisher;
+    private final ApiMetrics metrics;
 
-    public StuckSubmissionSweeper(StuckSubmissionClaimer claimer, JudgeJobPublisher publisher) {
+    public StuckSubmissionSweeper(StuckSubmissionClaimer claimer, JudgeJobPublisher publisher, ApiMetrics metrics) {
         this.claimer = claimer;
         this.publisher = publisher;
+        this.metrics = metrics;
     }
 
     @Scheduled(initialDelayString = "${codearena.sweeper.interval}", fixedDelayString = "${codearena.sweeper.interval}")
@@ -27,6 +30,7 @@ public class StuckSubmissionSweeper {
         try {
             List<Long> requeued = claimer.claim();
             requeued.forEach(publisher::publish);
+            metrics.sweeperRequeued(requeued.size());
             if (!requeued.isEmpty()) {
                 log.info("Requeued {} stuck submission(s): {}", requeued.size(), requeued);
             }

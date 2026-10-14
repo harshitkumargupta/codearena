@@ -8,11 +8,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.codearena.api.error.TooManyRequestsException;
+import com.codearena.api.metrics.ApiMetrics;
 import com.codearena.api.ratelimit.RateLimiter;
 import com.codearena.api.security.AuthUser;
 import com.codearena.api.support.DockerAvailability;
 import com.codearena.api.tutor.dto.HintRequest;
 import com.codearena.api.user.Role;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -35,7 +37,10 @@ class TutorLimiterRedisTest {
 
     private static final GenericContainer<?> REDIS =
             new GenericContainer<>(DockerImageName.parse("redis:7")).withExposedPorts(6379);
-    private static final Instant NOW = Instant.parse("2026-10-13T22:00:00Z");
+    // Two hours before UTC midnight of the real current day: Redis expires keys on real time, so a fixed past date
+    // would make the daily key (EXPIREAT midnight + 1 h) vanish at once.
+    private static final LocalDate TODAY = LocalDate.now(ZoneOffset.UTC);
+    private static final Instant NOW = TODAY.atTime(22, 0).toInstant(ZoneOffset.UTC);
     private static final AuthUser ALICE = new AuthUser(1L, "alice", Role.USER);
     private static final TutorProperties PROPERTIES = new TutorProperties(Duration.ofMinutes(5), 3, 10, 12_000, 8_000);
 
@@ -78,7 +83,8 @@ class TutorLimiterRedisTest {
             return new TutorContext(request.problemId(), "P", "statement", null, null, false);
         });
         service = new TutorService(loader, new TutorPromptBuilder(PROPERTIES), model,
-                new TutorLimiter(redis, PROPERTIES, clock), mock(RateLimiter.class), hintLogs, PROPERTIES, clock);
+                new TutorLimiter(redis, PROPERTIES, clock), mock(RateLimiter.class), hintLogs, PROPERTIES,
+                new ApiMetrics(new SimpleMeterRegistry()), clock);
         when(model.generate(any())).thenReturn("Think about complements.");
     }
 
@@ -106,7 +112,7 @@ class TutorLimiterRedisTest {
                     assertThat(ex.getMessage()).isEqualTo("Daily limit of 3 tutor answers reached");
                     assertThat(ex.getRetryAfterSeconds()).isEqualTo(Duration.ofHours(2).toSeconds());
                 });
-        assertThat(redis.opsForValue().get(TutorLimiter.dailyKey(1L, LocalDate.of(2026, 10, 13)))).isEqualTo("3");
+        assertThat(redis.opsForValue().get(TutorLimiter.dailyKey(1L, TODAY))).isEqualTo("3");
     }
 
     @Test
@@ -130,7 +136,7 @@ class TutorLimiterRedisTest {
         }
 
         assertThat(redis.hasKey(TutorLimiter.cooldownKey(1L, 5L))).isFalse();
-        assertThat(redis.opsForValue().get(TutorLimiter.dailyKey(1L, LocalDate.of(2026, 10, 13)))).isEqualTo("0");
+        assertThat(redis.opsForValue().get(TutorLimiter.dailyKey(1L, TODAY))).isEqualTo("0");
         doReturn("Think about complements.").when(model).generate(any());
         assertThat(service.hint(ALICE, new HintRequest(5L, 3, null)).fallback()).isFalse();
     }
@@ -142,6 +148,6 @@ class TutorLimiterRedisTest {
         assertThat(service.hint(ALICE, new HintRequest(5L, 1, null)).fallback()).isTrue();
         assertThat(service.hint(ALICE, new HintRequest(5L, 1, null)).fallback()).isTrue();
 
-        assertThat(redis.opsForValue().get(TutorLimiter.dailyKey(1L, LocalDate.of(2026, 10, 13)))).isEqualTo("0");
+        assertThat(redis.opsForValue().get(TutorLimiter.dailyKey(1L, TODAY))).isEqualTo("0");
     }
 }

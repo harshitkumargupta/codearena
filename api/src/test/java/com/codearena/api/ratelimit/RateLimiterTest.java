@@ -5,9 +5,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.codearena.api.error.ServiceUnavailableException;
 import com.codearena.api.error.TooManyRequestsException;
+import com.codearena.api.metrics.ApiMetrics;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.BucketConfiguration;
 import io.github.bucket4j.ConsumptionProbe;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +25,8 @@ class RateLimiterTest {
             new RateLimitProperties.Limit(1, Duration.ofHours(1)), PER_MINUTE_3);
 
     private final InMemoryStore store = new InMemoryStore();
-    private final RateLimiter limiter = new RateLimiter(store, new ClientIpResolver(List.of()), PROPERTIES);
+    private final RateLimiter limiter = new RateLimiter(store, new ClientIpResolver(List.of()), PROPERTIES,
+                new ApiMetrics(new SimpleMeterRegistry()));
 
     @Test
     void submissionsAllowTenPerMinuteThenAnswer429WithRetryAfter() {
@@ -64,7 +67,8 @@ class RateLimiterTest {
     void storeFailureFailsClosedWith503() {
         RateLimiter broken = new RateLimiter((key, config) -> {
             throw new IllegalStateException("Connection refused");
-        }, new ClientIpResolver(List.of()), PROPERTIES);
+        }, new ClientIpResolver(List.of()), PROPERTIES,
+                new ApiMetrics(new SimpleMeterRegistry()));
 
         assertThatThrownBy(() -> broken.checkTutor(1L))
                 .isInstanceOf(ServiceUnavailableException.class)
