@@ -12,3 +12,5 @@ dist/
 
 loadtest/.runs/
 __pycache__/
+.env.*
+!.env.example
