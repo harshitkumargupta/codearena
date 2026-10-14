@@ -14,3 +14,4 @@ loadtest/.runs/
 __pycache__/
 .env.*
 !.env.example
+tools/problems/.build/
