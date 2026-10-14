@@ -67,7 +67,7 @@ host. User code in the sandboxes is not exposed to the socket: sandboxes do not 
 - The worker container runs as uid 10002 with a read-only root filesystem, `no-new-privileges` and all
   capabilities dropped.
 - Job messages are deserialized only into the `com.codearena.common` record types (trusted-package allow-list).
-- Every sandbox runs with the limits in PROJECT.md section 5: no network, memory and pids limits, read-only rootfs,
+- Every sandbox runs with the limits in docs/DESIGN.md section 5: no network, memory and pids limits, read-only rootfs,
   all capabilities dropped, `no-new-privileges`, non-root user, wall-clock kill. Source is copied in with
   `copyArchiveToContainer`, never placed in a shell string or a host bind mount.
 - The worker labels its sandboxes and a janitor removes any that outlive the stale age.

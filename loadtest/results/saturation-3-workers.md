@@ -139,7 +139,7 @@ Per-step means from the samples (VM CPU in % of 4 vCPU; others in % of one core)
   not shown).
 - Cause of the wrong verdict: the time limit is enforced on container wall time (`State.StartedAt` to
   `FinishedAt`), so CPU contention on a shared host counts against the program. Not fixed during the measurements;
-  the proposed fix is in `PROJECT.md` section 16.
+  the proposed fix is in `docs/DESIGN.md` section 16.
 
 ### Finding 2: the sweeper re-publishes jobs that are only waiting in a long queue
 

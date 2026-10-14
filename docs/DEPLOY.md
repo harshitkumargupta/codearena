@@ -1,7 +1,7 @@
 # Running CodeArena on a single VM
 
 This is how to run the full stack on one Linux VM with Docker. It has **not** been deployed anywhere; the default
-way to show the project is the recorded demo (see `PROJECT.md` section 16). Treat this as a checklist for an
+way to show the project is the recorded demo (see `docs/DESIGN.md` section 16). Treat this as a checklist for an
 optional, short-lived demo machine.
 
 ## Read this first: the Docker socket

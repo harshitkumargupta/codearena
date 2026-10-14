@@ -1,0 +1,20 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Fixed JWT signing key used only as a test fixture in JwtServiceTest.java"
+condition = "AND"
+paths = ['''^api/src/test/java/com/codearena/api/security/JwtServiceTest\.java$''']
+regexes = ['''^0123456789abcdef0123456789abcdef$''']
+
+[[allowlists]]
+description = "Fixed JWT signing key used only as a test fixture in StompAuthInterceptorTest.java"
+condition = "AND"
+paths = ['''^api/src/test/java/com/codearena/api/websocket/StompAuthInterceptorTest\.java$''']
+regexes = ['''^0123456789abcdef0123456789abcdef$''']
+
+[[allowlists]]
+description = "Fixed JWT signing key used only as a test fixture in CodeArenaStack.java"
+condition = "AND"
+paths = ['''^integration\-tests/src/test/java/com/codearena/it/CodeArenaStack\.java$''']
+regexes = ['''^integration\-test\-secret\-that\-is\-long\-enough\-0123456789$''']

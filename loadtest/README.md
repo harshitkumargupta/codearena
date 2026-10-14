@@ -49,7 +49,7 @@ verdict counters equal to the database counts.
   the stack started, which may have played a part, but this was not established. Quote the result files' numbers
   with this caveat.
 
-### Findings (not fixed during the measurements; proposed fixes in `PROJECT.md` section 16)
+### Findings (not fixed during the measurements; proposed fixes in `docs/DESIGN.md` section 16)
 
 1. **A correct solution was judged TIME_LIMIT_EXCEEDED under contention** (`saturation-3-workers.md`):
    submission 1773, the reference Java Two Sum, took 2,286 ms against the 2,000 ms limit right after a 20 s stall;

@@ -72,7 +72,7 @@ flowchart LR
 ## Quick start
 
 Requirements: Docker with the Compose plugin and buildx, and cgroup v2 on the Docker host. Verified on macOS with
-Colima only; a plain Linux Docker host should work (the differences are noted in `PROJECT.md` section 15) but has not
+Colima only; a plain Linux Docker host should work (the differences are noted in `docs/DESIGN.md` section 15) but has not
 been tested. On Colima the repo must be under your home directory, because Colima shares only `$HOME` with its VM.
 
 ```sh
@@ -202,7 +202,7 @@ capabilities, and deserializes only the shared record types. In production: run 
 - **Never log user code or hidden data.** Message bodies are excluded from AMQP log lines, results carry only
   compiler output or fixed strings, and the tutor logs only ids, lengths and timings.
 
-The full decisions log is section 15 of [PROJECT.md](PROJECT.md).
+The full decisions log is section 15 of [docs/DESIGN.md](docs/DESIGN.md).
 
 ## Load test results
 
@@ -245,7 +245,7 @@ Caveats:
 
 ## Limitations
 
-Honest list, from section 16 of [PROJECT.md](PROJECT.md):
+Honest list, from section 16 of [docs/DESIGN.md](docs/DESIGN.md):
 
 - **Tutor quality with the local model is weak.** `qwen2.5-coder:1.5b` (the largest coding model that fits an 8 GB
   machine next to Docker) is fast but often wrong: one level 2 hint for Two Sum suggested sorting, which loses the
@@ -268,7 +268,7 @@ Honest list, from section 16 of [PROJECT.md](PROJECT.md):
 
 ## Documentation
 
-- [PROJECT.md](PROJECT.md): plan, phases, decisions log, open questions
+- [docs/DESIGN.md](docs/DESIGN.md): design, build phases, decisions log, open questions
 - [docs/DEMO.md](docs/DEMO.md): 4 to 5 minute demo script
 - [docs/DEPLOY.md](docs/DEPLOY.md): single-VM setup and firewall checklist
 - [docs/INTERVIEW.md](docs/INTERVIEW.md): interview questions answered from this code, and resume bullets

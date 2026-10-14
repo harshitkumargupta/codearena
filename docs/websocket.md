@@ -120,7 +120,7 @@ If the GET already shows a final status, unsubscribe.
 ## Limits
 
 - The broker is in-memory and per api instance: a client only receives pushes produced by the instance it is
-  connected to. With more than one api instance, use sticky sessions or a shared broker (see PROJECT.md, open
+  connected to. With more than one api instance, use sticky sessions or a shared broker (see docs/DESIGN.md, open
   questions).
 - No heartbeats are configured; rely on reconnect logic.
 - After a reconnect, repeat the subscribe-then-GET pattern, because updates sent while disconnected are lost.

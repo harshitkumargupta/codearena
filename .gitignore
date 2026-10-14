@@ -15,3 +15,11 @@ __pycache__/
 .env.*
 !.env.example
 tools/problems/.build/
+
+.c[Ll]aude/
+C[Ll]AUDE.md
+C[Ll]AUDE.local.md
+PHASE*_PROMPT.md
+PROJECT.md
+scratch/
+.scratch/

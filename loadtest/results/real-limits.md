@@ -103,6 +103,6 @@ All checks passed.
   proxied request (`proxy_pass` with a variable and no `upstream` block with `keepalive`), and the closed
   connections waiting in TIME_WAIT used up nginx's local port range. The raised-limit runs never reached that request
   rate, so they did not show it. This is a proxy configuration limit, not a rate-limiter fault; it was not changed
-  during the measurements, and the proposed fix is in `PROJECT.md` section 16.
+  during the measurements, and the proposed fix is in `docs/DESIGN.md` section 16.
 - A person clicking Submit cannot produce hundreds of requests per second, but a script ignoring 429s can, and
   once the ports are exhausted the proxy answers 502 to every user, not only to that script.

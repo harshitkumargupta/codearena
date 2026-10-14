@@ -1,10 +1,10 @@
 # Interview material
 
-Answers to the questions in `PROJECT.md` section 14, from this code base. Class names point at the implementation;
+Answers to the core interview questions about this project, from this code base. Class names point at the implementation;
 numbers come from the load tests in `loadtest/results/` (2026-10-14, Mac17,5, Colima 4 vCPU / 6 GiB, other
 workloads stopped).
 
-## Questions from section 14
+## Core questions
 
 ### How do you stop a fork bomb, memory hog, or network access from user code?
 
@@ -95,7 +95,7 @@ holds the lock and dies). At-least-once delivery plus an idempotent consumer is 
 construction: the conditional update makes the second result a no-op, and verdicts are counted in the api only when
 a submission is actually finalized, so metrics don't double either. The cost is extra work, and the load test showed
 when it hurts: the sweeper re-published 59 jobs that were only waiting in a 174-job backlog. The fix I'd make is to
-the sweeper (proposed in `PROJECT.md` section 16), not to the idempotency model.
+the sweeper (proposed in `docs/DESIGN.md` section 16), not to the idempotency model.
 
 ### Why quorum queues, and what was the delivery-limit surprise?
 
@@ -132,7 +132,7 @@ TIME_LIMIT_EXCEEDED (2,286 ms against a 2,000 ms limit, after a 20 s stall) beca
 contention counts against the user; judging on CPU time with a larger wall-clock cap would fix it. Third, the sweeper
 can't tell a queued job from a lost one, and nginx ran out of local ports at about 560 requests/s because it opens a
 new upstream connection per request. None of these were fixed during the measurements, so the numbers describe the
-system as built; the fixes are in `PROJECT.md` section 16.
+system as built; the fixes are in `docs/DESIGN.md` section 16.
 
 ## Resume bullets (measured values only)
 

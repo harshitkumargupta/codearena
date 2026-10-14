@@ -80,7 +80,7 @@ def import_pack(api, pack):
         status, body = api.call("POST", f"/admin/problems/{problem_id}/testcases", {"testCases": cases[i:i + BATCH]})
         if status != 201:
             return (f"FAILED: problem {problem_id} created unpublished, but uploading tests returned HTTP {status} "
-                    f"{body and body.get('message')}; see PROJECT.md section 16 for the manual fix")
+                    f"{body and body.get('message')}; see docs/DESIGN.md section 16 for the manual fix")
     status, body = api.call("PUT", f"/admin/problems/{problem_id}", problem_body(pack, True))
     if status != 200:
         return f"FAILED: problem {problem_id} has its tests but publishing returned HTTP {status}"
