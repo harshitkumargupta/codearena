@@ -1,0 +1,6 @@
+title: Rising Towers
+slug: rising-towers
+difficulty: HARD
+topic: longest increasing subsequence
+time_limit_ms: 2000
+memory_limit_mb: 256

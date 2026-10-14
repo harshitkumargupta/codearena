@@ -3,6 +3,7 @@
 ## Before recording
 
 - Stack up from a clean state: `docker compose up -d --build --scale worker=3`, all services `healthy`.
+- `python3.12 tools/problems/import.py --env-file .env` adds the 24 problem packs (30 problems in total).
 - `python3 scripts/demo-seed.py --start-in 0` creates "CodeArena demo contest" (Two Sum, FizzBuzz, Valid
   Parentheses, running for 2 hours) and three users. It prints their passwords once; note two of them.
 - Two browser windows side by side: **A** logged in as `demo_alice`, **B** as `demo_bob` (use a private window for
@@ -14,7 +15,7 @@
 
 ## 1. What it is (0:00 to 0:30)
 
-Show the problem list in window A.
+Show the problem list in window A: 30 problems, 6 seeded and 24 imported from problem packs.
 
 > "CodeArena is an online judge like LeetCode or Codeforces. You write code in the browser, it runs in a locked-down
 > Docker container on a pool of workers, and the verdict comes back live. It has timed contests with a live

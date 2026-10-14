@@ -30,6 +30,9 @@ Solo project: Spring Boot 3.5 (Java 21), RabbitMQ, PostgreSQL, Redis, React + Ty
   rate-limit rejections, tutor outcomes, WebSocket sessions) scraped by Prometheus, with a provisioned Grafana
   dashboard.
 - **Frontend**: React + Vite + TypeScript, Monaco editor, live verdict panel, contest pages, minimal admin pages.
+- **30 problems**: 6 seeded plus 24 original problem packs (10 Easy, 10 Medium, 4 Hard) whose tests are generated
+  from seeds and cross-checked against a brute force and a second-language reference before import, then verified
+  through the live judge. See [docs/PROBLEMS.md](docs/PROBLEMS.md).
 
 ## Architecture
 
@@ -98,6 +101,9 @@ docker compose ps
 | App | http://localhost:8080 (log in with `ADMIN_USERNAME` / `ADMIN_PASSWORD`) |
 | Grafana | http://127.0.0.1:3000 (`admin` / `GRAFANA_ADMIN_PASSWORD`), dashboard "CodeArena overview" |
 | Prometheus | http://127.0.0.1:9090 |
+
+The database starts with the 6 seeded problems. To add the 24 problem packs (Python 3.12 needed):
+`python3.12 tools/problems/import.py --env-file .env`.
 
 Optional demo data (a contest and three users, with passwords printed once):
 `python3 scripts/demo-seed.py`. The demo script is in [docs/DEMO.md](docs/DEMO.md).
@@ -266,6 +272,7 @@ Honest list, from section 16 of [PROJECT.md](PROJECT.md):
 - [docs/DEMO.md](docs/DEMO.md): 4 to 5 minute demo script
 - [docs/DEPLOY.md](docs/DEPLOY.md): single-VM setup and firewall checklist
 - [docs/INTERVIEW.md](docs/INTERVIEW.md): interview questions answered from this code, and resume bullets
+- [docs/PROBLEMS.md](docs/PROBLEMS.md): the problem list, pack format and problem tooling
 - [docs/websocket.md](docs/websocket.md): STOMP destinations and frames
 - [judge-images/README.md](judge-images/README.md): judge images, Docker host setup, docker.sock trade-off
 - [loadtest/README.md](loadtest/README.md): load tests and results

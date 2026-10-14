@@ -1,0 +1,6 @@
+title: Cheapest Route
+slug: cheapest-route
+difficulty: MEDIUM
+topic: shortest path (Dijkstra)
+time_limit_ms: 2000
+memory_limit_mb: 256
