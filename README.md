@@ -272,4 +272,4 @@ Honest list, from section 16 of [PROJECT.md](PROJECT.md):
 
 ## License
 
-Not chosen yet.
+MIT, see [LICENSE](LICENSE).

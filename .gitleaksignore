@@ -1,0 +1,7 @@
+# Fixed JWT signing keys used only as test fixtures (not real secrets).
+58333c6bce9effcb66f7d05f17427d0dd454793d:integration-tests/src/test/java/com/codearena/it/CodeArenaStack.java:generic-api-key:109
+220a35412885b13b92c0f9e1129c8afbdbfc2658:api/src/test/java/com/codearena/api/websocket/StompAuthInterceptorTest.java:generic-api-key:24
+a1ed17f5b12cffaf0b984e684e8e066fd56a6128:api/src/test/java/com/codearena/api/security/JwtServiceTest.java:generic-api-key:14
+integration-tests/src/test/java/com/codearena/it/CodeArenaStack.java:generic-api-key:110
+api/src/test/java/com/codearena/api/websocket/StompAuthInterceptorTest.java:generic-api-key:24
+api/src/test/java/com/codearena/api/security/JwtServiceTest.java:generic-api-key:14
