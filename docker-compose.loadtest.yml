@@ -1,0 +1,11 @@
+# Load testing only: raises the api's rate limits so k6 (one client IP, a few dozen users) is not throttled.
+# Nothing else changes. Every result file written with this override says that the limits were raised.
+#   docker compose -f docker-compose.yml -f docker-compose.loadtest.yml up -d --scale worker=3
+services:
+  api:
+    environment:
+      RATE_LIMIT_SUBMISSIONS_PER_MINUTE: "100000"
+      RATE_LIMIT_LOGIN_PER_IP_PER_MINUTE: "100000"
+      RATE_LIMIT_LOGIN_PER_USERNAME_PER_MINUTE: "100000"
+      RATE_LIMIT_REGISTER_PER_IP_PER_HOUR: "100000"
+      RATE_LIMIT_TUTOR_PER_MINUTE: "100000"

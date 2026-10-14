@@ -9,3 +9,6 @@ target/
 node_modules/
 dist/
 *.log
+
+loadtest/.runs/
+__pycache__/
